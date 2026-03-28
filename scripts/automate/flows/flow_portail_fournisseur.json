@@ -1,0 +1,158 @@
+{
+  "_comment": [
+    "FLUX 5 — Portail fournisseur via Microsoft Forms",
+    "",
+    "RÔLE : Quand un fournisseur soumet le formulaire Microsoft Forms de dépôt :",
+    "         1. Récupère la réponse et le fichier joint (stocké dans OneDrive automatiquement)",
+    "         2. Copie le fichier dans la bibliothèque Documents_Fichiers du bon fournisseur",
+    "         3. Crée un item dans la liste Documents avec statut 'En attente de validation'",
+    "            → Ce qui déclenche automatiquement le Flux 4 (archivage + notification)",
+    "",
+    "PRÉREQUIS :",
+    "  - Créer un Microsoft Forms avec les questions suivantes :",
+    "      Q1 : Code fournisseur (texte court — obligatoire)",
+    "      Q2 : Type de document (liste déroulante — options = vos types de documents)",
+    "      Q3 : Matière première concernée (texte court)",
+    "      Q4 : Date d'émission du document (date)",
+    "      Q5 : Fichier à déposer (téléchargement de fichier — obligatoire)",
+    "  - Lier ce flux au formulaire créé",
+    "",
+    "CONFIGURATION REQUISE APRÈS IMPORT :",
+    "  1. VOTRE_FORM_ID       → ID du Microsoft Forms (visible dans l'URL du form)",
+    "  2. VOTRE_SITE_URL      → URL du site SP",
+    "  3. LIST_GUID_DOCUMENTS → ID liste Documents",
+    "  4. LIBRARY_NAME        → Nom de la bibliothèque SP (ex: Documents_Fichiers)",
+    "  5. EMAIL_QUALITE       → adresse email équipe Qualité",
+    "",
+    "NOTE : Le fichier joint via Forms est sauvegardé dans OneDrive du créateur du form.",
+    "       Ce flux le copie automatiquement dans SharePoint."
+  ],
+  "definition": {
+    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "$connections": { "defaultValue": {}, "type": "Object" },
+      "$authentication": { "defaultValue": {}, "type": "SecureObject" }
+    },
+    "triggers": {
+      "Quand_reponse_soumise_Forms": {
+        "type": "OpenApiConnectionWebhook",
+        "inputs": {
+          "host": {
+            "apiId": "/providers/Microsoft.PowerApps/apis/shared_microsoftforms",
+            "connectionName": "shared_microsoftforms",
+            "operationId": "CreateFormResponseWebhook"
+          },
+          "parameters": {
+            "form_id": "VOTRE_FORM_ID"
+          },
+          "authentication": "@parameters('$authentication')"
+        }
+      }
+    },
+    "actions": {
+      "Obtenir_details_reponse": {
+        "type": "OpenApiConnection",
+        "runAfter": {},
+        "inputs": {
+          "host": {
+            "apiId": "/providers/Microsoft.PowerApps/apis/shared_microsoftforms",
+            "connectionName": "shared_microsoftforms",
+            "operationId": "GetFormResponseById"
+          },
+          "parameters": {
+            "form_id": "VOTRE_FORM_ID",
+            "response_id": "@triggerBody()?['resourceData/responseId']"
+          },
+          "authentication": "@parameters('$authentication')"
+        }
+      },
+      "Extraire_contenu_fichier_OneDrive": {
+        "type": "OpenApiConnection",
+        "runAfter": { "Obtenir_details_reponse": ["Succeeded"] },
+        "inputs": {
+          "host": {
+            "apiId": "/providers/Microsoft.PowerApps/apis/shared_onedriveforbusiness",
+            "connectionName": "shared_onedriveforbusiness",
+            "operationId": "GetFileContent"
+          },
+          "parameters": {
+            "id": "@{outputs('Obtenir_details_reponse')?['body/responderEmailAddress']}/FormFiles/@{outputs('Obtenir_details_reponse')?['body/answers/5/answer/id']}"
+          },
+          "authentication": "@parameters('$authentication')"
+        }
+      },
+      "Construire_nom_fichier": {
+        "type": "InitializeVariable",
+        "runAfter": { "Extraire_contenu_fichier_OneDrive": ["Succeeded"] },
+        "inputs": {
+          "variables": [{
+            "name": "nomFichier",
+            "type": "string",
+            "value": "@{outputs('Obtenir_details_reponse')?['body/answers/1/answer']}_@{outputs('Obtenir_details_reponse')?['body/answers/2/answer']}_@{outputs('Obtenir_details_reponse')?['body/answers/4/answer']}_@{outputs('Obtenir_details_reponse')?['body/answers/5/answer/name']}"
+          }]
+        }
+      },
+      "Copier_fichier_vers_SharePoint": {
+        "type": "OpenApiConnection",
+        "runAfter": { "Construire_nom_fichier": ["Succeeded"] },
+        "inputs": {
+          "host": {
+            "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+            "connectionName": "shared_sharepointonline",
+            "operationId": "CreateFile"
+          },
+          "parameters": {
+            "dataset": "VOTRE_SITE_URL",
+            "folderPath": "/LIBRARY_NAME/@{outputs('Obtenir_details_reponse')?['body/answers/1/answer']}",
+            "name": "@variables('nomFichier')",
+            "body": "@body('Extraire_contenu_fichier_OneDrive')"
+          },
+          "authentication": "@parameters('$authentication')"
+        }
+      },
+      "Creer_item_dans_liste_Documents": {
+        "type": "OpenApiConnection",
+        "runAfter": { "Copier_fichier_vers_SharePoint": ["Succeeded"] },
+        "inputs": {
+          "host": {
+            "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+            "connectionName": "shared_sharepointonline",
+            "operationId": "PostItem"
+          },
+          "parameters": {
+            "dataset": "VOTRE_SITE_URL",
+            "table": "LIST_GUID_DOCUMENTS",
+            "item/Title": "@variables('nomFichier')",
+            "item/Statut": "En attente de validation",
+            "item/DateEmission": "@outputs('Obtenir_details_reponse')?['body/answers/4/answer']",
+            "item/DateReception": "@utcNow()",
+            "item/DocumentCourant": true,
+            "item/LienFichier": "@outputs('Copier_fichier_vers_SharePoint')?['body/{Link}']",
+            "item/Commentaires": "Déposé via portail fournisseur le @{utcNow('dd/MM/yyyy')} par @{outputs('Obtenir_details_reponse')?['body/responderEmailAddress']}"
+          },
+          "authentication": "@parameters('$authentication')"
+        }
+      },
+      "Confirmer_reception_au_fournisseur": {
+        "type": "OpenApiConnection",
+        "runAfter": { "Creer_item_dans_liste_Documents": ["Succeeded"] },
+        "inputs": {
+          "host": {
+            "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+            "connectionName": "shared_office365",
+            "operationId": "SendEmailV2"
+          },
+          "parameters": {
+            "emailMessage/To": "@outputs('Obtenir_details_reponse')?['body/responderEmailAddress']",
+            "emailMessage/Cc": "EMAIL_QUALITE",
+            "emailMessage/Subject": "✅ Document bien reçu — @{outputs('Obtenir_details_reponse')?['body/answers/2/answer']}",
+            "emailMessage/Body": "<div style='font-family:Segoe UI,Arial,sans-serif'><div style='background:#107C10;padding:16px;color:#fff'><strong>Document reçu avec succès</strong></div><div style='padding:20px;border:1px solid #E1DFDD'><p>Bonjour,</p><p>Nous confirmons la bonne réception de votre document :</p><table style='border-collapse:collapse;width:100%;margin:12px 0'><tr><td style='padding:6px 12px;background:#FAF9F8;border:1px solid #E1DFDD'><strong>Code fournisseur</strong></td><td style='padding:6px 12px;border:1px solid #E1DFDD'>@{outputs('Obtenir_details_reponse')?['body/answers/1/answer']}</td></tr><tr><td style='padding:6px 12px;background:#FAF9F8;border:1px solid #E1DFDD'><strong>Type de document</strong></td><td style='padding:6px 12px;border:1px solid #E1DFDD'>@{outputs('Obtenir_details_reponse')?['body/answers/2/answer']}</td></tr><tr><td style='padding:6px 12px;background:#FAF9F8;border:1px solid #E1DFDD'><strong>Fichier reçu</strong></td><td style='padding:6px 12px;border:1px solid #E1DFDD'>@{outputs('Obtenir_details_reponse')?['body/answers/5/answer/name']}</td></tr><tr><td style='padding:6px 12px;background:#FAF9F8;border:1px solid #E1DFDD'><strong>Date de réception</strong></td><td style='padding:6px 12px;border:1px solid #E1DFDD'>@{utcNow('dd/MM/yyyy HH:mm')}</td></tr></table><p>Notre équipe Qualité va analyser votre document et vous recontactera si nécessaire.</p><p>Cordialement,<br><strong>Service Qualité</strong></p></div></div>",
+            "emailMessage/IsHtml": true
+          },
+          "authentication": "@parameters('$authentication')"
+        }
+      }
+    }
+  }
+}

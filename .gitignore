@@ -1,0 +1,26 @@
+# Skill de développement interne — ne pas versionner
+power-platform.skill
+power-platform-skill-extracted/
+
+# Fichiers système Windows
+Thumbs.db
+Desktop.ini
+*.lnk
+
+# Fichiers système macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Éditeurs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Fichiers temporaires
+*.tmp
+~$*

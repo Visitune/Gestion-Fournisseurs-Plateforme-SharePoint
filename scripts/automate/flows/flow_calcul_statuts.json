@@ -1,0 +1,122 @@
+{
+  "_comment": [
+    "FLUX 1 — Calcul des statuts (quotidien 08h00)",
+    "",
+    "RÔLE : Chaque matin, parcourt tous les documents actifs et met à jour",
+    "       leur statut selon leur date d'expiration :",
+    "         ≤ 0 jours  → Expiré",
+    "         ≤ 7 jours  → Expire bientôt",
+    "         ≤ 30 jours → Expire bientôt",
+    "         ≤ 90 jours → Expire bientôt",
+    "         > 90 jours → Valide",
+    "",
+    "IMPORT : Power Automate → Mes flux → Nouveau flux → Flux planifié",
+    "         Coller ce JSON dans l'éditeur de code (bouton '...' → Modifier en JSON)",
+    "",
+    "CONFIGURATION REQUISE APRÈS IMPORT :",
+    "  1. Remplacer VOTRE_SITE_URL par l'URL réelle du site SP",
+    "  2. Remplacer LIST_GUID_DOCUMENTS par l'ID réel de la liste Documents",
+    "     (SP → Paramètres liste → URL → chercher List= dans l'adresse)",
+    "  3. Tester avec 2-3 items avant d'activer en production"
+  ],
+  "definition": {
+    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "$connections": { "defaultValue": {}, "type": "Object" },
+      "$authentication": { "defaultValue": {}, "type": "SecureObject" }
+    },
+    "triggers": {
+      "Recurrence_quotidienne_08h00": {
+        "type": "Recurrence",
+        "recurrence": {
+          "frequency": "Day",
+          "interval": 1,
+          "startTime": "2025-01-01T08:00:00Z",
+          "timeZone": "Romance Standard Time"
+        }
+      }
+    },
+    "actions": {
+      "Obtenir_tous_documents_actifs": {
+        "type": "OpenApiConnection",
+        "runAfter": {},
+        "inputs": {
+          "host": {
+            "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+            "connectionName": "shared_sharepointonline",
+            "operationId": "GetItems"
+          },
+          "parameters": {
+            "dataset": "VOTRE_SITE_URL",
+            "table": "LIST_GUID_DOCUMENTS",
+            "$filter": "DocumentCourant eq 1 and Statut ne 'Obsolète' and Statut ne 'Manquant'",
+            "$top": 5000
+          },
+          "authentication": "@parameters('$authentication')"
+        }
+      },
+      "Pour_chaque_document": {
+        "type": "Foreach",
+        "foreach": "@outputs('Obtenir_tous_documents_actifs')?['body/value']",
+        "runAfter": { "Obtenir_tous_documents_actifs": ["Succeeded"] },
+        "actions": {
+          "Calculer_jours_restants": {
+            "type": "InitializeVariable",
+            "inputs": {
+              "variables": [{
+                "name": "joursRestants",
+                "type": "integer",
+                "value": "@int(div(sub(ticks(items('Pour_chaque_document')?['DateExpiration']), ticks(utcNow())), 864000000000))"
+              }]
+            },
+            "runAfter": {}
+          },
+          "Determiner_nouveau_statut": {
+            "type": "InitializeVariable",
+            "inputs": {
+              "variables": [{
+                "name": "nouveauStatut",
+                "type": "string",
+                "value": "@if(lessOrEquals(variables('joursRestants'), 0), 'Expiré', if(lessOrEquals(variables('joursRestants'), 90), 'Expire bientôt', 'Valide'))"
+              }]
+            },
+            "runAfter": { "Calculer_jours_restants": ["Succeeded"] }
+          },
+          "Verifier_si_statut_change": {
+            "type": "If",
+            "expression": {
+              "not": {
+                "equals": [
+                  "@items('Pour_chaque_document')?['Statut']",
+                  "@variables('nouveauStatut')"
+                ]
+              }
+            },
+            "actions": {
+              "Mettre_a_jour_statut": {
+                "type": "OpenApiConnection",
+                "inputs": {
+                  "host": {
+                    "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                    "connectionName": "shared_sharepointonline",
+                    "operationId": "PatchItem"
+                  },
+                  "parameters": {
+                    "dataset": "VOTRE_SITE_URL",
+                    "table": "LIST_GUID_DOCUMENTS",
+                    "id": "@items('Pour_chaque_document')?['ID']",
+                    "item/Statut": "@variables('nouveauStatut')"
+                  },
+                  "authentication": "@parameters('$authentication')"
+                }
+              }
+            },
+            "else": { "actions": {} },
+            "runAfter": { "Determiner_nouveau_statut": ["Succeeded"] }
+          }
+        }
+      }
+    }
+  }
+}

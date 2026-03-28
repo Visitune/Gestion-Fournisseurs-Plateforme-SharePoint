@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body        { font-family: Calibri, Arial, sans-serif; font-size: 14px; color: #222; margin: 0; padding: 0; background: #f5f5f5; }
+    .wrapper    { max-width: 700px; margin: 24px auto; background: #fff; border-radius: 6px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.1); }
+    .header     { padding: 20px 28px; background: #2E7D32; color: #fff; }
+    .header h1  { margin: 0; font-size: 20px; font-weight: 600; }
+    .header p   { margin: 6px 0 0; font-size: 13px; opacity: .85; }
+    .body       { padding: 24px 28px; }
+    .intro      { background: #E8F5E9; border-left: 4px solid #2E7D32; padding: 14px 18px; border-radius: 0 4px 4px 0; margin-bottom: 20px; }
+    table       { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    th          { background: #f0f0f0; text-align: left; padding: 8px 12px; font-size: 12px; text-transform: uppercase; color: #555; }
+    td          { padding: 10px 12px; border-bottom: 1px solid #eee; font-size: 13px; }
+    tr:last-child td { border-bottom: none; }
+    .expired    { color: #B71C1C; font-weight: 700; }
+    .missing    { color: #6A1B9A; font-weight: 700; }
+    .soon       { color: #E65100; font-weight: 700; }
+    .section-title { font-size: 15px; font-weight: 600; color: #333; margin: 24px 0 8px; border-bottom: 2px solid #e0e0e0; padding-bottom: 6px; }
+    .instructions { background: #E3F2FD; border-left: 4px solid #1565C0; padding: 14px 18px; border-radius: 0 4px 4px 0; margin: 20px 0; }
+    .instructions p { margin: 0 0 8px; font-size: 13px; }
+    .instructions p:last-child { margin: 0; }
+    .btn        { display: inline-block; margin-top: 20px; padding: 10px 24px; background: #2E7D32; color: #fff; text-decoration: none; border-radius: 4px; font-size: 13px; font-weight: 600; }
+    .footer     { padding: 16px 28px; background: #f9f9f9; border-top: 1px solid #eee; font-size: 11px; color: #999; }
+    .contact    { margin-top: 24px; font-size: 13px; }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+
+  <div class="header">
+    <h1>Documents qualité à mettre à jour</h1>
+    <!-- Injecter : outputs('Get_Fournisseur')?['body/Title'] -->
+    <p>Fournisseur : {{NomFournisseur}}</p>
+  </div>
+
+  <div class="body">
+
+    <p>Madame, Monsieur,</p>
+
+    <div class="intro">
+      <p>
+        Dans le cadre de notre gestion qualité fournisseurs, nous procédons à une vérification
+        régulière de la conformité documentaire de nos partenaires.<br><br>
+        Après examen de votre dossier, il apparaît que les documents listés ci-dessous
+        nécessitent une mise à jour. Nous vous remercions de nous les faire parvenir
+        dans les meilleurs délais.
+      </p>
+    </div>
+
+    <!-- === SECTION DOCUMENTS EXPIRÉS === -->
+    <!-- Afficher cette section uniquement si des documents expirés existent -->
+    <p class="section-title">Documents expirés — Action immédiate requise</p>
+    <!-- Injecter : tableau HTML des documents Statut = "Expiré" -->
+    <!-- Structure du tableau : Type document | Matière | Date expiration | Ref. document -->
+    {{TABLEAU_EXPIRES}}
+
+    <!-- === SECTION DOCUMENTS MANQUANTS === -->
+    <!-- Afficher cette section uniquement si des documents manquants existent -->
+    <p class="section-title">Documents manquants</p>
+    <!-- Injecter : tableau HTML des documents Statut = "Manquant" -->
+    {{TABLEAU_MANQUANTS}}
+
+    <!-- === SECTION DOCUMENTS BIENTÔT EXPIRÉS === -->
+    <!-- Afficher cette section uniquement si des documents expirant bientôt existent -->
+    <p class="section-title">Documents arrivant à expiration prochainement</p>
+    <!-- Injecter : tableau HTML des documents Statut = "Expire bientôt" -->
+    {{TABLEAU_BIENTOT_EXPIRES}}
+
+    <div class="instructions">
+      <p><strong>Comment nous transmettre vos documents :</strong></p>
+      <p>1. Répondre à cet email en joignant les documents demandés</p>
+      <p>2. Ou déposer directement vos fichiers via le lien sécurisé ci-dessous</p>
+      <p>3. Format accepté : PDF de préférence (Word, Excel également acceptés)</p>
+    </div>
+
+    <!-- Bouton lien vers le portail de dépôt -->
+    <!-- Injecter : URL du formulaire de dépôt SharePoint configuré pour ce fournisseur -->
+    <a href="{{URLDepot}}" class="btn">Déposer mes documents</a>
+
+    <div class="contact">
+      <p>Pour toute question, n'hésitez pas à contacter :</p>
+      <!-- Injecter coordonnées du service Qualité/Achats -->
+      <p>
+        Service Qualité : <a href="mailto:{{EmailQualite}}">{{EmailQualite}}</a><br>
+        Service Achats : <a href="mailto:{{EmailAchats}}">{{EmailAchats}}</a>
+      </p>
+    </div>
+
+    <p style="margin-top:32px;">
+      Nous vous remercions pour votre collaboration.<br><br>
+      Cordialement,<br>
+      <strong>Le Service Qualité</strong><br>
+      {{NomClient}}
+    </p>
+
+    <p style="margin-top:16px; font-size:11px; color:#aaa;">
+      Cet email a été généré automatiquement par notre système de gestion fournisseurs.
+      Il ne constitue pas un engagement contractuel.
+    </p>
+
+  </div>
+
+  <div class="footer">
+    {{NomClient}} &nbsp;|&nbsp; Email envoyé le {{DateEmail}} &nbsp;|&nbsp;
+    Référence fournisseur : {{CodeFournisseur}}
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,179 @@
+{
+  "_comment": [
+    "FLUX 2 — Alertes expiration J-90 / J-30 / J-7 (quotidien 08h30)",
+    "",
+    "RÔLE : Envoie UN email par document le jour EXACT où il atteint J-90, J-30 ou J-7.",
+    "       Pas de spam quotidien — un seul envoi par seuil.",
+    "       L'email J-30 est aussi envoyé au contact qualité du fournisseur.",
+    "       L'email J-7 est marqué URGENT.",
+    "",
+    "CONFIGURATION REQUISE APRÈS IMPORT :",
+    "  1. VOTRE_SITE_URL       → URL du site SP",
+    "  2. LIST_GUID_DOCUMENTS  → ID liste Documents",
+    "  3. LIST_GUID_FOURNISSEURS → ID liste Fournisseurs",
+    "  4. EMAIL_QUALITE        → adresse email équipe Qualité",
+    "  5. EMAIL_ACHATS         → adresse email équipe Achats",
+    "",
+    "DÉCLENCHEUR : Planifié quotidien 08h30 (après le flux Calcul statuts)"
+  ],
+  "definition": {
+    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "$connections": { "defaultValue": {}, "type": "Object" },
+      "$authentication": { "defaultValue": {}, "type": "SecureObject" }
+    },
+    "triggers": {
+      "Recurrence_quotidienne_08h30": {
+        "type": "Recurrence",
+        "recurrence": {
+          "frequency": "Day",
+          "interval": 1,
+          "startTime": "2025-01-01T08:30:00Z",
+          "timeZone": "Romance Standard Time"
+        }
+      }
+    },
+    "actions": {
+      "Init_date_aujourd_hui": {
+        "type": "InitializeVariable",
+        "runAfter": {},
+        "inputs": {
+          "variables": [{ "name": "dateAujourdhui", "type": "string", "value": "@utcNow('yyyy-MM-dd')" }]
+        }
+      },
+      "Obtenir_documents_actifs": {
+        "type": "OpenApiConnection",
+        "runAfter": { "Init_date_aujourd_hui": ["Succeeded"] },
+        "inputs": {
+          "host": {
+            "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+            "connectionName": "shared_sharepointonline",
+            "operationId": "GetItems"
+          },
+          "parameters": {
+            "dataset": "VOTRE_SITE_URL",
+            "table": "LIST_GUID_DOCUMENTS",
+            "$filter": "DocumentCourant eq 1 and (Statut eq 'Valide' or Statut eq 'Expire bientôt')",
+            "$top": 5000
+          },
+          "authentication": "@parameters('$authentication')"
+        }
+      },
+      "Pour_chaque_document": {
+        "type": "Foreach",
+        "foreach": "@outputs('Obtenir_documents_actifs')?['body/value']",
+        "runAfter": { "Obtenir_documents_actifs": ["Succeeded"] },
+        "actions": {
+          "Calculer_jours_restants": {
+            "type": "InitializeVariable",
+            "inputs": {
+              "variables": [{
+                "name": "jours",
+                "type": "integer",
+                "value": "@int(div(sub(ticks(items('Pour_chaque_document')?['DateExpiration']), ticks(utcNow())), 864000000000))"
+              }]
+            },
+            "runAfter": {}
+          },
+          "Verifier_J90": {
+            "type": "If",
+            "expression": { "equals": ["@variables('jours')", 90] },
+            "actions": {
+              "Email_alerte_J90": {
+                "type": "OpenApiConnection",
+                "inputs": {
+                  "host": {
+                    "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+                    "connectionName": "shared_office365",
+                    "operationId": "SendEmailV2"
+                  },
+                  "parameters": {
+                    "emailMessage/To": "EMAIL_QUALITE;EMAIL_ACHATS",
+                    "emailMessage/Subject": "[J-90] Expiration dans 90 jours — @{items('Pour_chaque_document')?['TypeDocument/Title']} · @{items('Pour_chaque_document')?['Fournisseur/Title']}",
+                    "emailMessage/Body": "<p>Bonjour,</p><p>Le document suivant expire dans <strong>90 jours</strong>.</p><table border='1' cellpadding='6' style='border-collapse:collapse'><tr><td><strong>Fournisseur</strong></td><td>@{items('Pour_chaque_document')?['Fournisseur/Title']}</td></tr><tr><td><strong>Type</strong></td><td>@{items('Pour_chaque_document')?['TypeDocument/Title']}</td></tr><tr><td><strong>Matière</strong></td><td>@{items('Pour_chaque_document')?['MatierePremiere/Title']}</td></tr><tr><td><strong>Expiration</strong></td><td>@{items('Pour_chaque_document')?['DateExpiration']}</td></tr></table><p>Veuillez anticiper le renouvellement.</p>",
+                    "emailMessage/IsHtml": true,
+                    "emailMessage/Importance": "Normal"
+                  },
+                  "authentication": "@parameters('$authentication')"
+                }
+              }
+            },
+            "else": { "actions": {} },
+            "runAfter": { "Calculer_jours_restants": ["Succeeded"] }
+          },
+          "Verifier_J30": {
+            "type": "If",
+            "expression": { "equals": ["@variables('jours')", 30] },
+            "actions": {
+              "Obtenir_fournisseur_pour_J30": {
+                "type": "OpenApiConnection",
+                "inputs": {
+                  "host": {
+                    "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                    "connectionName": "shared_sharepointonline",
+                    "operationId": "GetItem"
+                  },
+                  "parameters": {
+                    "dataset": "VOTRE_SITE_URL",
+                    "table": "LIST_GUID_FOURNISSEURS",
+                    "id": "@items('Pour_chaque_document')?['FournisseurId']"
+                  },
+                  "authentication": "@parameters('$authentication')"
+                },
+                "runAfter": {}
+              },
+              "Email_alerte_J30": {
+                "type": "OpenApiConnection",
+                "inputs": {
+                  "host": {
+                    "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+                    "connectionName": "shared_office365",
+                    "operationId": "SendEmailV2"
+                  },
+                  "parameters": {
+                    "emailMessage/To": "EMAIL_QUALITE;EMAIL_ACHATS;@{outputs('Obtenir_fournisseur_pour_J30')?['body/EmailContactQualite']}",
+                    "emailMessage/Subject": "⚠️ [J-30] Expiration dans 30 jours — @{items('Pour_chaque_document')?['TypeDocument/Title']} · @{items('Pour_chaque_document')?['Fournisseur/Title']}",
+                    "emailMessage/Body": "<p>Bonjour,</p><p>Le document suivant expire dans <strong>30 jours</strong>. Le fournisseur est également informé.</p><table border='1' cellpadding='6' style='border-collapse:collapse'><tr><td><strong>Fournisseur</strong></td><td>@{items('Pour_chaque_document')?['Fournisseur/Title']}</td></tr><tr><td><strong>Type</strong></td><td>@{items('Pour_chaque_document')?['TypeDocument/Title']}</td></tr><tr><td><strong>Matière</strong></td><td>@{items('Pour_chaque_document')?['MatierePremiere/Title']}</td></tr><tr><td><strong>Expiration</strong></td><td>@{items('Pour_chaque_document')?['DateExpiration']}</td></tr></table><p>Merci de déposer le document renouvelé dès que possible.</p>",
+                    "emailMessage/IsHtml": true,
+                    "emailMessage/Importance": "High"
+                  },
+                  "authentication": "@parameters('$authentication')"
+                },
+                "runAfter": { "Obtenir_fournisseur_pour_J30": ["Succeeded"] }
+              }
+            },
+            "else": { "actions": {} },
+            "runAfter": { "Verifier_J90": ["Succeeded"] }
+          },
+          "Verifier_J7": {
+            "type": "If",
+            "expression": { "equals": ["@variables('jours')", 7] },
+            "actions": {
+              "Email_alerte_J7_URGENT": {
+                "type": "OpenApiConnection",
+                "inputs": {
+                  "host": {
+                    "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+                    "connectionName": "shared_office365",
+                    "operationId": "SendEmailV2"
+                  },
+                  "parameters": {
+                    "emailMessage/To": "EMAIL_QUALITE;EMAIL_ACHATS",
+                    "emailMessage/Subject": "🚨 URGENT [J-7] Expiration dans 7 JOURS — @{items('Pour_chaque_document')?['TypeDocument/Title']} · @{items('Pour_chaque_document')?['Fournisseur/Title']}",
+                    "emailMessage/Body": "<p style='color:red'><strong>⚠️ DOCUMENT EN COURS D'EXPIRATION — ACTION REQUISE IMMÉDIATEMENT</strong></p><p>Ce document expire dans <strong>7 jours</strong>. Sans renouvellement, le fournisseur sera en non-conformité.</p><table border='1' cellpadding='6' style='border-collapse:collapse'><tr><td><strong>Fournisseur</strong></td><td>@{items('Pour_chaque_document')?['Fournisseur/Title']}</td></tr><tr><td><strong>Type</strong></td><td>@{items('Pour_chaque_document')?['TypeDocument/Title']}</td></tr><tr><td><strong>Matière</strong></td><td>@{items('Pour_chaque_document')?['MatierePremiere/Title']}</td></tr><tr style='background:#FFEBEE'><td><strong>Expiration</strong></td><td><strong style='color:red'>@{items('Pour_chaque_document')?['DateExpiration']}</strong></td></tr></table>",
+                    "emailMessage/IsHtml": true,
+                    "emailMessage/Importance": "High"
+                  },
+                  "authentication": "@parameters('$authentication')"
+                }
+              }
+            },
+            "else": { "actions": {} },
+            "runAfter": { "Verifier_J30": ["Succeeded"] }
+          }
+        }
+      }
+    }
+  }
+}

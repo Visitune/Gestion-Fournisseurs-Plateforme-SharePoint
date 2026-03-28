@@ -1,0 +1,15 @@
+[build]
+  publish = "."
+
+[[redirects]]
+  from = "/"
+  to   = "/NAVIGATEUR.html"
+  status = 301
+  force  = true
+
+# Empêche l'indexation par les moteurs de recherche (démo client privée)
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+    X-Frame-Options = "SAMEORIGIN"

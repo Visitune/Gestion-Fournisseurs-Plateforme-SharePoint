@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body        { font-family: Calibri, Arial, sans-serif; font-size: 14px; color: #222; margin: 0; padding: 0; background: #f5f5f5; }
+    .wrapper    { max-width: 680px; margin: 24px auto; background: #fff; border-radius: 6px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.1); }
+    .header     { padding: 20px 28px; color: #fff; }
+    .header.j90 { background: #1565C0; }
+    .header.j30 { background: #E65100; }
+    .header.j7  { background: #B71C1C; }
+    .header.j0  { background: #4A148C; }
+    .header h1  { margin: 0; font-size: 20px; font-weight: 600; }
+    .header p   { margin: 6px 0 0; font-size: 13px; opacity: .85; }
+    .body       { padding: 24px 28px; }
+    .badge      { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; color: #fff; margin-bottom: 16px; }
+    .badge.j90  { background: #1565C0; }
+    .badge.j30  { background: #E65100; }
+    .badge.j7   { background: #B71C1C; }
+    .badge.j0   { background: #4A148C; }
+    table       { width: 100%; border-collapse: collapse; margin-top: 16px; }
+    th          { background: #f0f0f0; text-align: left; padding: 8px 12px; font-size: 12px; text-transform: uppercase; color: #555; }
+    td          { padding: 10px 12px; border-bottom: 1px solid #eee; font-size: 13px; }
+    tr:last-child td { border-bottom: none; }
+    .status-expired { color: #B71C1C; font-weight: 600; }
+    .status-soon    { color: #E65100; font-weight: 600; }
+    .action-box     { background: #fff8e1; border-left: 4px solid #FFA000; padding: 14px 18px; margin: 20px 0; border-radius: 0 4px 4px 0; }
+    .action-box p   { margin: 0; font-size: 13px; }
+    .btn            { display: inline-block; margin-top: 20px; padding: 10px 24px; background: #1565C0; color: #fff; text-decoration: none; border-radius: 4px; font-size: 13px; font-weight: 600; }
+    .footer         { padding: 16px 28px; background: #f9f9f9; border-top: 1px solid #eee; font-size: 11px; color: #999; }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- HEADER — adapter la classe (j90 / j30 / j7 / j0) selon le type d'alerte -->
+  <div class="header j30">
+    <h1>Document fournisseur à renouveler</h1>
+    <p>Système de gestion fournisseurs — Alerte automatique</p>
+  </div>
+
+  <div class="body">
+
+    <!-- Badge délai — adapter selon le type d'alerte -->
+    <span class="badge j30">Expire dans 30 jours</span>
+
+    <p>Bonjour,</p>
+    <p>
+      Le document ci-dessous arrive à expiration. Merci de prendre les dispositions
+      nécessaires pour le renouveler avant la date d'échéance.
+    </p>
+
+    <table>
+      <tr>
+        <th>Champ</th>
+        <th>Valeur</th>
+      </tr>
+      <tr>
+        <td><strong>Type de document</strong></td>
+        <!-- Injecter : items()?['TypeDocument/Title'] -->
+        <td>{{TypeDocument}}</td>
+      </tr>
+      <tr>
+        <td><strong>Fournisseur</strong></td>
+        <!-- Injecter : items()?['Fournisseur/Title'] -->
+        <td>{{Fournisseur}}</td>
+      </tr>
+      <tr>
+        <td><strong>Matière</strong></td>
+        <!-- Injecter : items()?['Matiere/Title'] — laisser vide si niveau Fournisseur -->
+        <td>{{Matiere}}</td>
+      </tr>
+      <tr>
+        <td><strong>Date d'expiration</strong></td>
+        <!-- Injecter : formatDateTime(items()?['DateExpiration'], 'dd/MM/yyyy') -->
+        <td class="status-soon">{{DateExpiration}}</td>
+      </tr>
+      <tr>
+        <td><strong>Référence document</strong></td>
+        <!-- Injecter : items()?['ReferenceDocument'] -->
+        <td>{{ReferenceDocument}}</td>
+      </tr>
+      <tr>
+        <td><strong>Statut actuel</strong></td>
+        <td>{{Statut}}</td>
+      </tr>
+    </table>
+
+    <div class="action-box">
+      <p><strong>Action requise :</strong> Contacter le fournisseur pour obtenir le document mis à jour,
+      puis l'uploader dans SharePoint et le soumettre à validation Qualité.</p>
+    </div>
+
+    <!-- Bouton lien direct vers le document dans SharePoint -->
+    <!-- Injecter : items()?['URLFichier'] -->
+    <a href="{{URLFichier}}" class="btn">Voir le document dans SharePoint</a>
+
+    <p style="margin-top:24px; font-size:12px; color:#888;">
+      Cet email a été envoyé automatiquement par le système de gestion fournisseurs.<br>
+      Ne pas répondre à cet email.
+    </p>
+
+  </div>
+
+  <div class="footer">
+    Gestion Fournisseurs — {{NomClient}} &nbsp;|&nbsp;
+    Email généré le {{DateEmail}} &nbsp;|&nbsp;
+    <a href="{{URLSharePoint}}">Accéder au tableau de bord</a>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,279 @@
+{
+  "_comment": "Exemple de configuration pour un client agroalimentaire — basé sur les données de référence du projet",
+  "_version": "1.0",
+
+  "client": {
+    "nom": "Client Agroalimentaire A",
+    "code": "CLIENT_A",
+    "secteur": "Agroalimentaire",
+    "sharepoint_url": "https://TENANT.sharepoint.com/sites/QualiteFournisseurs",
+    "langue": "fr-FR",
+    "timezone": "Romance Standard Time"
+  },
+
+  "alertes": {
+    "jours_avant_expiration": [90, 30, 7],
+    "heure_calcul_quotidien": "08:00",
+    "email_qualite": "qualite@entreprise.fr",
+    "email_achats": "achats@entreprise.fr",
+    "email_direction": "",
+    "inclure_fournisseur_dans_alerte_j30": true,
+    "inclure_fournisseur_dans_alerte_j7": true
+  },
+
+  "types_documents": [
+    {
+      "nom": "Fiche Technique",
+      "code": "FT",
+      "niveau": "Fournisseur+Matière",
+      "duree_validite_jours": 730,
+      "alerte_j90": true,
+      "alerte_j30": true,
+      "alerte_j7": true,
+      "obligatoire_approbation": true,
+      "extensions_acceptees": "pdf,docx,xlsx",
+      "commentaire": ""
+    },
+    {
+      "nom": "Cahier des Charges Ingrédient",
+      "code": "CDC",
+      "niveau": "Fournisseur+Matière",
+      "duree_validite_jours": 1095,
+      "alerte_j90": true,
+      "alerte_j30": true,
+      "alerte_j7": false,
+      "obligatoire_approbation": true,
+      "extensions_acceptees": "pdf,docx",
+      "commentaire": ""
+    },
+    {
+      "nom": "Certificat GFSI / IFS / BRC / FSSC",
+      "code": "CERT_GFSI",
+      "niveau": "Fournisseur",
+      "duree_validite_jours": 365,
+      "alerte_j90": true,
+      "alerte_j30": true,
+      "alerte_j7": true,
+      "obligatoire_approbation": true,
+      "extensions_acceptees": "pdf",
+      "commentaire": ""
+    },
+    {
+      "nom": "EN.ACHAT.001 — Questionnaire fournisseur",
+      "code": "EN_ACHAT_001",
+      "niveau": "Fournisseur",
+      "duree_validite_jours": 365,
+      "alerte_j90": false,
+      "alerte_j30": true,
+      "alerte_j7": false,
+      "obligatoire_approbation": true,
+      "extensions_acceptees": "pdf,docx,xlsx",
+      "commentaire": "Questionnaire général fournisseur"
+    },
+    {
+      "nom": "EN.ACHAT.006 — OGM, Dioxine, Nano",
+      "code": "EN_ACHAT_006",
+      "niveau": "Fournisseur+Matière",
+      "duree_validite_jours": 365,
+      "alerte_j90": false,
+      "alerte_j30": true,
+      "alerte_j7": false,
+      "obligatoire_approbation": true,
+      "extensions_acceptees": "pdf,docx",
+      "commentaire": ""
+    },
+    {
+      "nom": "EN.ACHAT.007 — Questionnaire Allergènes",
+      "code": "EN_ACHAT_007",
+      "niveau": "Fournisseur+Matière",
+      "duree_validite_jours": 365,
+      "alerte_j90": false,
+      "alerte_j30": true,
+      "alerte_j7": false,
+      "obligatoire_approbation": true,
+      "extensions_acceptees": "pdf,docx",
+      "commentaire": ""
+    },
+    {
+      "nom": "EN.ACHAT.008 — Éthique et Malveillance",
+      "code": "EN_ACHAT_008",
+      "niveau": "Fournisseur",
+      "duree_validite_jours": 365,
+      "alerte_j90": false,
+      "alerte_j30": true,
+      "alerte_j7": false,
+      "obligatoire_approbation": false,
+      "extensions_acceptees": "pdf,docx",
+      "commentaire": ""
+    },
+    {
+      "nom": "EN.ACHAT.010 — Corps étrangers et risques chimiques",
+      "code": "EN_ACHAT_010",
+      "niveau": "Fournisseur+Matière",
+      "duree_validite_jours": 365,
+      "alerte_j90": false,
+      "alerte_j30": true,
+      "alerte_j7": false,
+      "obligatoire_approbation": false,
+      "extensions_acceptees": "pdf,docx",
+      "commentaire": ""
+    },
+    {
+      "nom": "EN.ACHAT.011 — Plan de contrôle contaminants",
+      "code": "EN_ACHAT_011",
+      "niveau": "Fournisseur+Matière",
+      "duree_validite_jours": 365,
+      "alerte_j90": false,
+      "alerte_j30": true,
+      "alerte_j7": false,
+      "obligatoire_approbation": false,
+      "extensions_acceptees": "pdf,docx",
+      "commentaire": ""
+    },
+    {
+      "nom": "EN.ACHAT.013 — Gestion de crise",
+      "code": "EN_ACHAT_013",
+      "niveau": "Fournisseur",
+      "duree_validite_jours": 365,
+      "alerte_j90": false,
+      "alerte_j30": false,
+      "alerte_j7": false,
+      "obligatoire_approbation": false,
+      "extensions_acceptees": "pdf,docx",
+      "commentaire": ""
+    },
+    {
+      "nom": "EN.ACHAT.017 — Composition ingrédients",
+      "code": "EN_ACHAT_017",
+      "niveau": "Fournisseur+Matière",
+      "duree_validite_jours": 365,
+      "alerte_j90": false,
+      "alerte_j30": true,
+      "alerte_j7": false,
+      "obligatoire_approbation": false,
+      "extensions_acceptees": "pdf,docx",
+      "commentaire": ""
+    },
+    {
+      "nom": "EN.ACHAT.021 — Protocole de sécurité",
+      "code": "EN_ACHAT_021",
+      "niveau": "Fournisseur",
+      "duree_validite_jours": 365,
+      "alerte_j90": false,
+      "alerte_j30": false,
+      "alerte_j7": false,
+      "obligatoire_approbation": false,
+      "extensions_acceptees": "pdf,docx",
+      "commentaire": ""
+    },
+    {
+      "nom": "Analyse Laboratoire",
+      "code": "ANALYSE_LABO",
+      "niveau": "Fournisseur+Matière",
+      "duree_validite_jours": 365,
+      "alerte_j90": false,
+      "alerte_j30": true,
+      "alerte_j7": false,
+      "obligatoire_approbation": false,
+      "extensions_acceptees": "pdf,xlsx",
+      "commentaire": "Bulletin d'analyse"
+    },
+    {
+      "nom": "Évaluation Fournisseur",
+      "code": "EVAL_FOURN",
+      "niveau": "Fournisseur",
+      "duree_validite_jours": 365,
+      "alerte_j90": false,
+      "alerte_j30": false,
+      "alerte_j7": false,
+      "obligatoire_approbation": false,
+      "extensions_acceptees": "pdf,xlsx",
+      "commentaire": "Grille d'évaluation annuelle"
+    }
+  ],
+
+  "categories_matieres": [
+    "Ingrédient",
+    "Emballage",
+    "Auxiliaire technologique",
+    "Matière première",
+    "Autre"
+  ],
+
+  "types_fournisseurs": [
+    "Producteur direct",
+    "Broker",
+    "Négoce",
+    "Distributeur",
+    "Autre"
+  ],
+
+  "niveaux_criticite": ["Haute", "Moyenne", "Faible"],
+
+  "score_conformite": {
+    "poids_documents_valides": 0.6,
+    "poids_documents_expires": 0.3,
+    "poids_evaluation_annuelle": 0.1,
+    "seuil_conforme": 80,
+    "seuil_alerte": 60
+  },
+
+  "analyse_fraude": {
+    "activer": true,
+    "criteres": [
+      {
+        "code": "historique",
+        "libelle": "Historique de fraude",
+        "description": "Historique entreprise, filière, publications, RASFF, adultérant connu",
+        "echelle_min": 0,
+        "echelle_max": 5
+      },
+      {
+        "code": "marche",
+        "libelle": "Pression marché",
+        "description": "Coût, rareté, fluctuation, saisonnalité, facilité, taille du marché",
+        "echelle_min": 0,
+        "echelle_max": 5
+      },
+      {
+        "code": "origine",
+        "libelle": "Complexité origine",
+        "description": "Complexité chaîne appro, fournisseur ponctuel, origine, complexité fraude",
+        "echelle_min": 0,
+        "echelle_max": 5
+      },
+      {
+        "code": "produit",
+        "libelle": "Vulnérabilité produit",
+        "description": "Facilité de frauder, état physique (poudre, liquide, destructuré), notion d'identité",
+        "echelle_min": 0,
+        "echelle_max": 5
+      }
+    ],
+    "grille_probabilite": [
+      { "label": "Improbable", "seuil_min": 0,  "seuil_max": 7  },
+      { "label": "Possible",   "seuil_min": 8,  "seuil_max": 14 },
+      { "label": "Probable",   "seuil_min": 15, "seuil_max": 20 }
+    ],
+    "grille_detection": ["Impossible", "Difficile", "Possible", "Facile"],
+    "grille_criticite": {
+      "Improbable": { "Impossible": "A", "Difficile": "A", "Possible": "B", "Facile": "C" },
+      "Possible":   { "Impossible": "B", "Difficile": "B", "Possible": "C", "Facile": "C" },
+      "Probable":   { "Impossible": "C", "Difficile": "C", "Possible": "C", "Facile": "C" }
+    }
+  },
+
+  "bibliotheque_documents": {
+    "nom": "Docs_Fournisseurs",
+    "description": "Bibliothèque centrale des documents fournisseurs"
+  },
+
+  "listes_sharepoint": {
+    "types_documents":    "Types_Documents",
+    "fournisseurs":       "Fournisseurs",
+    "matieres_premieres": "Matieres_Premieres",
+    "liens_fourn_mat":    "Liens_Fournisseur_Matiere",
+    "documents":          "Documents",
+    "analyse_fraude":     "Analyse_Fraude"
+  }
+}

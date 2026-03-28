@@ -1,0 +1,161 @@
+{
+  "_comment": [
+    "FLUX 3 — Relance fournisseur (déclenché manuellement depuis la liste Fournisseurs)",
+    "",
+    "RÔLE : Quand l'utilisateur sélectionne un fournisseur dans la liste SP",
+    "       et clique sur Flow → 'Relancer ce fournisseur', ce flux :",
+    "         1. Récupère tous les documents expirés/bientôt/manquants de ce fournisseur",
+    "         2. Génère un email HTML avec la liste détaillée",
+    "         3. L'envoie au contact qualité du fournisseur",
+    "",
+    "DÉCLENCHEUR : 'For a selected item' dans la liste Fournisseurs",
+    "              (apparaît dans menu '...' → Flow → [nom du flux] quand un item est sélectionné)",
+    "",
+    "CONFIGURATION REQUISE APRÈS IMPORT :",
+    "  1. VOTRE_SITE_URL          → URL du site SP",
+    "  2. LIST_GUID_FOURNISSEURS  → ID liste Fournisseurs",
+    "  3. LIST_GUID_DOCUMENTS     → ID liste Documents",
+    "  4. EMAIL_QUALITE           → adresse expéditeur (de : service qualité)"
+  ],
+  "definition": {
+    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "$connections": { "defaultValue": {}, "type": "Object" },
+      "$authentication": { "defaultValue": {}, "type": "SecureObject" }
+    },
+    "triggers": {
+      "Pour_un_element_selectionne": {
+        "type": "OpenApiConnectionWebhook",
+        "inputs": {
+          "host": {
+            "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+            "connectionName": "shared_sharepointonline",
+            "operationId": "SubscribeOnSelectedItemCreation"
+          },
+          "parameters": {
+            "dataset": "VOTRE_SITE_URL",
+            "table": "LIST_GUID_FOURNISSEURS"
+          },
+          "authentication": "@parameters('$authentication')"
+        }
+      }
+    },
+    "actions": {
+      "Obtenir_details_fournisseur": {
+        "type": "OpenApiConnection",
+        "runAfter": {},
+        "inputs": {
+          "host": {
+            "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+            "connectionName": "shared_sharepointonline",
+            "operationId": "GetItem"
+          },
+          "parameters": {
+            "dataset": "VOTRE_SITE_URL",
+            "table": "LIST_GUID_FOURNISSEURS",
+            "id": "@triggerBody()?['ID']"
+          },
+          "authentication": "@parameters('$authentication')"
+        }
+      },
+      "Obtenir_documents_problematiques": {
+        "type": "OpenApiConnection",
+        "runAfter": { "Obtenir_details_fournisseur": ["Succeeded"] },
+        "inputs": {
+          "host": {
+            "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+            "connectionName": "shared_sharepointonline",
+            "operationId": "GetItems"
+          },
+          "parameters": {
+            "dataset": "VOTRE_SITE_URL",
+            "table": "LIST_GUID_DOCUMENTS",
+            "$filter": "FournisseurId eq @{triggerBody()?['ID']} and DocumentCourant eq 1 and (Statut eq 'Expiré' or Statut eq 'Expire bientôt' or Statut eq 'Manquant')",
+            "$orderby": "Statut asc",
+            "$top": 100
+          },
+          "authentication": "@parameters('$authentication')"
+        }
+      },
+      "Verifier_si_des_documents_a_relancer": {
+        "type": "If",
+        "expression": {
+          "greater": [
+            "@length(outputs('Obtenir_documents_problematiques')?['body/value'])",
+            0
+          ]
+        },
+        "actions": {
+          "Construire_lignes_email": {
+            "type": "InitializeVariable",
+            "inputs": {
+              "variables": [{
+                "name": "lignesExpires",
+                "type": "string",
+                "value": ""
+              }]
+            },
+            "runAfter": {}
+          },
+          "Pour_chaque_document": {
+            "type": "Foreach",
+            "foreach": "@outputs('Obtenir_documents_problematiques')?['body/value']",
+            "runAfter": { "Construire_lignes_email": ["Succeeded"] },
+            "actions": {
+              "Ajouter_ligne_email": {
+                "type": "AppendToStringVariable",
+                "inputs": {
+                  "name": "lignesExpires",
+                  "value": "<tr><td style='padding:6px 12px;border-bottom:1px solid #eee'>@{items('Pour_chaque_document')?['TypeDocument/Title']}</td><td style='padding:6px 12px;border-bottom:1px solid #eee'>@{items('Pour_chaque_document')?['MatierePremiere/Title']}</td><td style='padding:6px 12px;border-bottom:1px solid #eee;color:@{if(equals(items('Pour_chaque_document')?['Statut'], 'Expiré'), '#C62828', '#E65100')}'><strong>@{items('Pour_chaque_document')?['Statut']}</strong></td><td style='padding:6px 12px;border-bottom:1px solid #eee'>@{items('Pour_chaque_document')?['DateExpiration']}</td></tr>"
+                }
+              }
+            }
+          },
+          "Envoyer_email_relance": {
+            "type": "OpenApiConnection",
+            "runAfter": { "Pour_chaque_document": ["Succeeded"] },
+            "inputs": {
+              "host": {
+                "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+                "connectionName": "shared_office365",
+                "operationId": "SendEmailV2"
+              },
+              "parameters": {
+                "emailMessage/To": "@outputs('Obtenir_details_fournisseur')?['body/EmailContactQualite']",
+                "emailMessage/Cc": "EMAIL_QUALITE",
+                "emailMessage/Subject": "Documents qualité à mettre à jour — @{outputs('Obtenir_details_fournisseur')?['body/Title']}",
+                "emailMessage/Body": "<div style='font-family:Segoe UI,Arial,sans-serif;max-width:600px'><div style='background:#0078D4;padding:16px 20px;color:#fff'><strong style='font-size:16px'>Documents qualité à renouveler</strong><br><span style='font-size:13px;opacity:.85'>Fournisseur : @{outputs('Obtenir_details_fournisseur')?['body/Title']}</span></div><div style='padding:20px;background:#fff;border:1px solid #E1DFDD'><p>Madame, Monsieur,</p><p>Dans le cadre de notre gestion qualité fournisseurs, les documents suivants nécessitent une mise à jour :</p><table style='width:100%;border-collapse:collapse;margin:16px 0'><thead><tr style='background:#F3F2F1'><th style='padding:8px 12px;text-align:left;font-size:13px'>Document</th><th style='padding:8px 12px;text-align:left;font-size:13px'>Matière</th><th style='padding:8px 12px;text-align:left;font-size:13px'>Statut</th><th style='padding:8px 12px;text-align:left;font-size:13px'>Échéance</th></tr></thead><tbody>@{variables('lignesExpires')}</tbody></table><p>Merci de nous transmettre les documents mis à jour dans les meilleurs délais.</p><p>Cordialement,<br><strong>Service Qualité</strong></p></div></div>",
+                "emailMessage/IsHtml": true,
+                "emailMessage/Importance": "High"
+              },
+              "authentication": "@parameters('$authentication')"
+            }
+          }
+        },
+        "else": {
+          "actions": {
+            "Notifier_aucun_document": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+                  "connectionName": "shared_office365",
+                  "operationId": "SendEmailV2"
+                },
+                "parameters": {
+                  "emailMessage/To": "EMAIL_QUALITE",
+                  "emailMessage/Subject": "Info — Aucun document à relancer pour @{triggerBody()?['Title']}",
+                  "emailMessage/Body": "<p>Le fournisseur <strong>@{triggerBody()?['Title']}</strong> n'a aucun document expiré, bientôt expiré ou manquant. Aucun email de relance n'a été envoyé.</p>",
+                  "emailMessage/IsHtml": true
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            }
+          }
+        },
+        "runAfter": { "Obtenir_documents_problematiques": ["Succeeded"] }
+      }
+    }
+  }
+}

@@ -1,0 +1,164 @@
+{
+  "_comment": [
+    "FLUX 4 — Nouveau document reçu (déclenché quand un item est créé dans Documents)",
+    "",
+    "RÔLE : À chaque nouvel item dans la liste Documents :",
+    "         1. Cherche l'ancien document courant du même type / fournisseur / matière",
+    "         2. Si trouvé : le passe en 'Obsolète' + DocumentCourant = false",
+    "         3. Calcule le nouveau numéro de version (max_précédent + 1)",
+    "         4. Met à jour le nouvel item : Version, DocumentCourant = true",
+    "         5. Notifie l'équipe Qualité par email",
+    "",
+    "CONFIGURATION REQUISE APRÈS IMPORT :",
+    "  1. VOTRE_SITE_URL      → URL du site SP",
+    "  2. LIST_GUID_DOCUMENTS → ID liste Documents",
+    "  3. EMAIL_QUALITE       → adresse email équipe Qualité"
+  ],
+  "definition": {
+    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "$connections": { "defaultValue": {}, "type": "Object" },
+      "$authentication": { "defaultValue": {}, "type": "SecureObject" }
+    },
+    "triggers": {
+      "Quand_item_creee_dans_Documents": {
+        "type": "OpenApiConnection",
+        "inputs": {
+          "host": {
+            "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+            "connectionName": "shared_sharepointonline",
+            "operationId": "GetOnNewItems"
+          },
+          "parameters": {
+            "dataset": "VOTRE_SITE_URL",
+            "table": "LIST_GUID_DOCUMENTS"
+          },
+          "authentication": "@parameters('$authentication')"
+        },
+        "recurrence": { "frequency": "Minute", "interval": 1 },
+        "splitOn": "@triggerOutputs()?['body/value']"
+      }
+    },
+    "actions": {
+      "Verifier_statut_entrant": {
+        "type": "If",
+        "expression": {
+          "equals": [
+            "@triggerBody()?['Statut']",
+            "En attente de validation"
+          ]
+        },
+        "actions": {
+          "Chercher_ancien_document_courant": {
+            "type": "OpenApiConnection",
+            "runAfter": {},
+            "inputs": {
+              "host": {
+                "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                "connectionName": "shared_sharepointonline",
+                "operationId": "GetItems"
+              },
+              "parameters": {
+                "dataset": "VOTRE_SITE_URL",
+                "table": "LIST_GUID_DOCUMENTS",
+                "$filter": "TypeDocumentId eq @{triggerBody()?['TypeDocumentId']} and FournisseurId eq @{triggerBody()?['FournisseurId']} and DocumentCourant eq 1 and ID ne @{triggerBody()?['ID']}",
+                "$orderby": "Version desc",
+                "$top": 5
+              },
+              "authentication": "@parameters('$authentication')"
+            }
+          },
+          "Init_nouvelle_version": {
+            "type": "InitializeVariable",
+            "runAfter": { "Chercher_ancien_document_courant": ["Succeeded"] },
+            "inputs": {
+              "variables": [{
+                "name": "nouvelleVersion",
+                "type": "integer",
+                "value": "@if(greater(length(outputs('Chercher_ancien_document_courant')?['body/value']), 0), add(int(first(outputs('Chercher_ancien_document_courant')?['body/value'])?['Version']), 1), 1)"
+              }]
+            }
+          },
+          "Archiver_anciens_si_existants": {
+            "type": "If",
+            "expression": {
+              "greater": [
+                "@length(outputs('Chercher_ancien_document_courant')?['body/value'])",
+                0
+              ]
+            },
+            "actions": {
+              "Pour_chaque_ancien": {
+                "type": "Foreach",
+                "foreach": "@outputs('Chercher_ancien_document_courant')?['body/value']",
+                "actions": {
+                  "Passer_en_obsolete": {
+                    "type": "OpenApiConnection",
+                    "inputs": {
+                      "host": {
+                        "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                        "connectionName": "shared_sharepointonline",
+                        "operationId": "PatchItem"
+                      },
+                      "parameters": {
+                        "dataset": "VOTRE_SITE_URL",
+                        "table": "LIST_GUID_DOCUMENTS",
+                        "id": "@items('Pour_chaque_ancien')?['ID']",
+                        "item/Statut": "Obsolète",
+                        "item/DocumentCourant": false
+                      },
+                      "authentication": "@parameters('$authentication')"
+                    }
+                  }
+                }
+              }
+            },
+            "else": { "actions": {} },
+            "runAfter": { "Init_nouvelle_version": ["Succeeded"] }
+          },
+          "Mettre_a_jour_nouveau_document": {
+            "type": "OpenApiConnection",
+            "runAfter": { "Archiver_anciens_si_existants": ["Succeeded"] },
+            "inputs": {
+              "host": {
+                "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                "connectionName": "shared_sharepointonline",
+                "operationId": "PatchItem"
+              },
+              "parameters": {
+                "dataset": "VOTRE_SITE_URL",
+                "table": "LIST_GUID_DOCUMENTS",
+                "id": "@triggerBody()?['ID']",
+                "item/Version": "@variables('nouvelleVersion')",
+                "item/DocumentCourant": true,
+                "item/DateReception": "@utcNow()"
+              },
+              "authentication": "@parameters('$authentication')"
+            }
+          },
+          "Notifier_equipe_qualite": {
+            "type": "OpenApiConnection",
+            "runAfter": { "Mettre_a_jour_nouveau_document": ["Succeeded"] },
+            "inputs": {
+              "host": {
+                "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+                "connectionName": "shared_office365",
+                "operationId": "SendEmailV2"
+              },
+              "parameters": {
+                "emailMessage/To": "EMAIL_QUALITE",
+                "emailMessage/Subject": "📥 Nouveau document reçu — À valider — @{triggerBody()?['TypeDocument/Title']} · @{triggerBody()?['Fournisseur/Title']}",
+                "emailMessage/Body": "<div style='font-family:Segoe UI,Arial,sans-serif'><div style='background:#0078D4;padding:16px;color:#fff'><strong>Nouveau document à valider</strong></div><div style='padding:20px;border:1px solid #E1DFDD'><p>Bonjour,</p><p>Un nouveau document a été reçu et est en attente de votre validation.</p><table style='border-collapse:collapse;width:100%;margin:12px 0'><tr><td style='padding:6px 12px;background:#FAF9F8;border:1px solid #E1DFDD'><strong>Fournisseur</strong></td><td style='padding:6px 12px;border:1px solid #E1DFDD'>@{triggerBody()?['Fournisseur/Title']}</td></tr><tr><td style='padding:6px 12px;background:#FAF9F8;border:1px solid #E1DFDD'><strong>Type</strong></td><td style='padding:6px 12px;border:1px solid #E1DFDD'>@{triggerBody()?['TypeDocument/Title']}</td></tr><tr><td style='padding:6px 12px;background:#FAF9F8;border:1px solid #E1DFDD'><strong>Matière</strong></td><td style='padding:6px 12px;border:1px solid #E1DFDD'>@{triggerBody()?['MatierePremiere/Title']}</td></tr><tr><td style='padding:6px 12px;background:#FAF9F8;border:1px solid #E1DFDD'><strong>Version</strong></td><td style='padding:6px 12px;border:1px solid #E1DFDD'>V@{variables('nouvelleVersion')}</td></tr></table></div></div>",
+                "emailMessage/IsHtml": true
+              },
+              "authentication": "@parameters('$authentication')"
+            }
+          }
+        },
+        "else": { "actions": {} },
+        "runAfter": {}
+      }
+    }
+  }
+}
