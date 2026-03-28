@@ -84,14 +84,14 @@ body {
 h1,h2,h3,h4,h5 { font-family: var(--font-display); font-weight: 700; line-height: 1.2; }
 
 /* ── APP SHELL (sidebar + main) ── */
-.app-shell { display: flex; min-height: 100vh; }
+.app-shell { display: flex; height: 100vh; overflow: hidden; }
 
 .sidebar {
   width: 228px; flex-shrink: 0;
   background: var(--primary);
   display: flex; flex-direction: column;
   padding: 20px 10px;
-  position: sticky; top: 0; height: 100vh;
+  height: 100vh;
   overflow-y: auto; overflow-x: hidden;
   z-index: 200;
   scrollbar-width: none;
@@ -146,7 +146,7 @@ h1,h2,h3,h4,h5 { font-family: var(--font-display); font-weight: 700; line-height
 .sidebar-version { font-size: 10px; color: rgba(255,255,255,.25); line-height: 1.4; }
 
 /* ── MAIN CONTENT SCROLL ── */
-.main-content { overflow-y: auto; height: 100vh; }
+.main-content { flex: 1; overflow-y: auto; min-width: 0; }
 
 /* Global Lucide Styling */
 .lucide {
