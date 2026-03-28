@@ -67,22 +67,10 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
 
-/* ── RESPONSIVE (mobile: sidebar becomes topbar) ── */
-@media (max-width: 768px) {
-  .app-shell { flex-direction: column; }
-  .sidebar {
-    width: 100%; height: auto; position: sticky;
-    flex-direction: row; align-items: center;
-    padding: 10px 16px; gap: 0; overflow-x: auto;
-  }
-  .sidebar-logo { border-bottom: none; padding-bottom: 0; margin-bottom: 0; padding-right: 16px; border-right: 1px solid rgba(255,255,255,.12); flex-shrink: 0; }
-  .logo-text small { display: none; }
-  .sidebar-nav { flex-direction: row; gap: 2px; flex: 1; padding-left: 8px; }
-  .sidebar-section-label { display: none; }
-  .sidebar-footer { display: none; }
-  .nav-tab { padding: 8px 10px; font-size: 12px; white-space: nowrap; }
-  .main-content { height: auto; }
-  main { padding: 20px 16px 60px; }
+/* ── Desktop only — min-width pour éviter le crush ── */
+body { min-width: 960px; }
+@media (max-width: 960px) {
+  .g3, .g4 { grid-template-columns: 1fr 1fr; }
 }
 body {
   font-family: var(--font-body);
