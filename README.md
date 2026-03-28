@@ -1,8 +1,9 @@
 # 🛡️ Toolkit Supplier Management & HACCP 2026
 > **Solution de Gestion Documentaire Fournisseurs & Plan de Maîtrise Sanitaire (PMS)**
 
-[![Netlify Status](https://api.netlify.com/api/v1/badges/your-id/deploy-status)](https://votre-url-netlify.app)
-*(Bouton indicatif - à configurer après déploiement)*
+[![GitHub Repo](https://img.shields.io/badge/GitHub-Repo-blue?logo=github)](https://github.com/Visitune/Gestion-Fournisseurs-Plateforme-SharePoint)
+[![Netlify Status](https://api.netlify.com/api/v1/badges/your-id/deploy-status)](https://netlify.app)
+*(Bouton indicatif)*
 
 Ce dépôt contient une solution complète et modulaire pour la gestion de la conformité fournisseurs (IFS/BRC/FSSC) et l'automatisation du plan HACCP sur Microsoft 365.
 
