@@ -3017,7 +3017,8 @@ table.info-table tr:hover td { background: var(--bleu-xl); }
   </div>
 
   <!-- RÉCAP DE LA JOURNÉE -->
-  <div class="card" style="border:2px solid #A5D6A7;background:var(--vert-l)">
+  <div class="section" id="demo-recap">
+    <div class="card" style="border:2px solid #A5D6A7;background:var(--vert-l)">
     <h2 class="block-title" style="margin-bottom:16px">⏱️ Récapitulatif de la journée de Anne</h2>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
       <div>
@@ -3043,8 +3044,8 @@ table.info-table tr:hover td { background: var(--bleu-xl); }
         </div>
       </div>
     </div>
+    </div>
   </div>
-
 </div>
 
 <!-- ══════════════════════════════════════════════════ FICHIERS -->
@@ -3560,7 +3561,14 @@ table.info-table tr:hover td { background: var(--bleu-xl); }
     tabs.forEach(a => a.classList.remove('active'));
     
     document.getElementById(id).classList.add('active');
-    document.getElementById('nav-' + id).classList.add('active');
+    if (document.getElementById('nav-' + id)) {
+      document.getElementById('nav-' + id).classList.add('active');
+    }
+    
+    if (id === 'demo') {
+      const demoRecap = document.getElementById('demo-recap');
+      if (demoRecap) demoRecap.classList.add('active');
+    }
     
     // Refresh icons in case some were hidden or new ones appeared
     lucide.createIcons();
