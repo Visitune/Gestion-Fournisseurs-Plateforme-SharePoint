@@ -95,8 +95,34 @@ h1,h2,h3,h4,h5 { font-family: var(--font-display); font-weight: 700; line-height
   overflow-y: auto; overflow-x: hidden;
   z-index: 200;
   scrollbar-width: none;
+  transition: width 0.25s cubic-bezier(0.4,0,0.2,1);
 }
 .sidebar::-webkit-scrollbar { display: none; }
+
+/* ── Collapsed state ── */
+.sidebar.collapsed { width: 52px; padding: 20px 8px; }
+.sidebar.collapsed .logo-text,
+.sidebar.collapsed .sidebar-section-label,
+.sidebar.collapsed .nav-tab-label,
+.sidebar.collapsed .sidebar-footer { display: none; }
+.sidebar.collapsed .sidebar-logo { justify-content: center; padding-bottom: 18px; }
+.sidebar.collapsed .nav-tab { justify-content: center; padding: 9px; gap: 0; }
+.sidebar.collapsed .nav-tab.active { box-shadow: none; }
+.sidebar.collapsed .sidebar-toggle svg { transform: rotate(180deg); }
+
+/* ── Toggle button ── */
+.sidebar-toggle {
+  display: flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: var(--r-sm);
+  background: rgba(255,255,255,.08); border: none;
+  cursor: pointer; color: rgba(255,255,255,.6);
+  margin-left: auto; flex-shrink: 0;
+  transition: background 0.15s, color 0.15s;
+}
+.sidebar-toggle:hover { background: rgba(255,255,255,.16); color: #fff; }
+.sidebar-toggle svg { width: 14px; height: 14px; transition: transform 0.25s ease; }
+.sidebar.collapsed .sidebar-logo { gap: 0; }
+.sidebar.collapsed .sidebar-toggle { margin-left: 0; }
 
 .sidebar-logo {
   display: flex; align-items: center; gap: 10px;
@@ -635,50 +661,53 @@ table.info-table tr:hover td { background: var(--overlay); }
 <body>
 <div class="app-shell">
 
-<aside class="sidebar">
+<aside class="sidebar" id="sidebar">
   <div class="sidebar-logo">
     <div class="logo-mark"><i data-lucide="package-check"></i></div>
     <div class="logo-text">Gestion FRS <small>Plateforme SharePoint</small></div>
+    <button class="sidebar-toggle" onclick="toggleSidebar()" title="Réduire le menu">
+      <i data-lucide="chevrons-left"></i>
+    </button>
   </div>
 
   <nav class="sidebar-nav">
     <span class="sidebar-section-label">Navigation</span>
     <button class="nav-tab active" onclick="show('accueil')" id="nav-accueil">
-      <i data-lucide="home"></i> Accueil
+      <i data-lucide="home"></i><span class="nav-tab-label"> Accueil</span>
     </button>
     <button class="nav-tab" onclick="show('probleme')" id="nav-probleme">
-      <i data-lucide="alert-triangle"></i> Enjeux
+      <i data-lucide="alert-triangle"></i><span class="nav-tab-label"> Enjeux</span>
     </button>
     <button class="nav-tab" onclick="show('solution')" id="nav-solution">
-      <i data-lucide="check-circle-2"></i> Solution
+      <i data-lucide="check-circle-2"></i><span class="nav-tab-label"> Solution</span>
     </button>
     <button class="nav-tab" onclick="show('donnees')" id="nav-donnees">
-      <i data-lucide="database"></i> Données
+      <i data-lucide="database"></i><span class="nav-tab-label"> Données</span>
     </button>
     <button class="nav-tab" onclick="show('documents')" id="nav-documents">
-      <i data-lucide="file-text"></i> Documents
+      <i data-lucide="file-text"></i><span class="nav-tab-label"> Documents</span>
     </button>
     <button class="nav-tab" onclick="show('alertes')" id="nav-alertes">
-      <i data-lucide="bell"></i> Alertes
+      <i data-lucide="bell"></i><span class="nav-tab-label"> Alertes</span>
     </button>
 
     <span class="sidebar-section-label" style="margin-top:4px">Mise en œuvre</span>
     <button class="nav-tab" onclick="show('phases')" id="nav-phases">
-      <i data-lucide="rocket"></i> Étapes
+      <i data-lucide="rocket"></i><span class="nav-tab-label"> Étapes</span>
     </button>
     <button class="nav-tab" onclick="show('config')" id="nav-config">
-      <i data-lucide="sliders"></i> Configuration
+      <i data-lucide="sliders"></i><span class="nav-tab-label"> Configuration</span>
     </button>
     <button class="nav-tab" onclick="show('fichiers')" id="nav-fichiers">
-      <i data-lucide="folder-open"></i> Fichiers
+      <i data-lucide="folder-open"></i><span class="nav-tab-label"> Fichiers</span>
     </button>
 
     <span class="sidebar-section-label" style="margin-top:4px">Offre</span>
     <button class="nav-tab" onclick="show('licences')" id="nav-licences">
-      <i data-lucide="briefcase"></i> Offre commerciale
+      <i data-lucide="briefcase"></i><span class="nav-tab-label"> Offre commerciale</span>
     </button>
     <button class="nav-tab" onclick="show('demo')" id="nav-demo">
-      <i data-lucide="play-circle"></i> Démo interactive
+      <i data-lucide="play-circle"></i><span class="nav-tab-label"> Démo interactive</span>
     </button>
   </nav>
 
@@ -3631,6 +3660,12 @@ table.info-table tr:hover td { background: var(--overlay); }
     lucide.createIcons();
     show('accueil');
   };
+
+  function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    sidebar.classList.toggle('collapsed');
+    lucide.createIcons();
+  }
 
   function show(id) {
     const sections = document.querySelectorAll('.section');
