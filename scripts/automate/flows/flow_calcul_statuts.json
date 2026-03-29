@@ -50,7 +50,9 @@
           "parameters": {
             "dataset": "VOTRE_SITE_URL",
             "table": "LIST_GUID_DOCUMENTS",
-            "$filter": "DocumentCourant eq 1 and Statut ne 'Obsolète' and Statut ne 'Manquant'",
+            "$filter": "DocumentCourant eq 1 and DateExpiration ne null and Statut ne 'Obsolète' and Statut ne 'Manquant'",
+            "$expand": "TypeDocument",
+            "$select": "ID,Title,Statut,DateExpiration,TypeDocument/AlerteJ90,TypeDocument/AlerteJ30,TypeDocument/AlerteJ7",
             "$top": 5000
           },
           "authentication": "@parameters('$authentication')"
@@ -78,7 +80,7 @@
               "variables": [{
                 "name": "nouveauStatut",
                 "type": "string",
-                "value": "@if(lessOrEquals(variables('joursRestants'), 0), 'Expiré', if(lessOrEquals(variables('joursRestants'), 90), 'Expire bientôt', 'Valide'))"
+                "value": "@if(lessOrEquals(variables('joursRestants'), 0), 'Expiré', if(and(lessOrEquals(variables('joursRestants'), 7), equals(items('Pour_chaque_document')?['TypeDocument/AlerteJ7'], true)), 'Expire bientôt', if(and(lessOrEquals(variables('joursRestants'), 30), equals(items('Pour_chaque_document')?['TypeDocument/AlerteJ30'], true)), 'Expire bientôt', if(and(lessOrEquals(variables('joursRestants'), 90), equals(items('Pour_chaque_document')?['TypeDocument/AlerteJ90'], true)), 'Expire bientôt', 'Valide'))))"
               }]
             },
             "runAfter": { "Calculer_jours_restants": ["Succeeded"] }

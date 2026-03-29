@@ -50,9 +50,20 @@
           ]
         },
         "actions": {
+          "Init_filtre_versioning": {
+            "type": "InitializeVariable",
+            "runAfter": {},
+            "inputs": {
+              "variables": [{
+                "name": "filtreVersioning",
+                "type": "string",
+                "value": "@concat('TypeDocumentId eq ', triggerBody()?['TypeDocumentId'], ' and DocumentCourant eq 1 and ID ne ', triggerBody()?['ID'], if(equals(triggerBody()?['FournisseurId'], null), ' and FournisseurId eq null', concat(' and FournisseurId eq ', string(triggerBody()?['FournisseurId']))), if(equals(triggerBody()?['MatierePremiereId'], null), ' and MatierePremiereId eq null', concat(' and MatierePremiereId eq ', string(triggerBody()?['MatierePremiereId']))))"
+              }]
+            }
+          },
           "Chercher_ancien_document_courant": {
             "type": "OpenApiConnection",
-            "runAfter": {},
+            "runAfter": { "Init_filtre_versioning": ["Succeeded"] },
             "inputs": {
               "host": {
                 "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
@@ -62,7 +73,7 @@
               "parameters": {
                 "dataset": "VOTRE_SITE_URL",
                 "table": "LIST_GUID_DOCUMENTS",
-                "$filter": "TypeDocumentId eq @{triggerBody()?['TypeDocumentId']} and FournisseurId eq @{triggerBody()?['FournisseurId']} and MatierePremiereId eq @{triggerBody()?['MatierePremiereId']} and DocumentCourant eq 1 and ID ne @{triggerBody()?['ID']}",
+                "$filter": "@{variables('filtreVersioning')}",
                 "$orderby": "Version desc",
                 "$top": 5
               },

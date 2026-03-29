@@ -25,6 +25,7 @@
     "  5. EMAIL_QUALITE       → adresse email équipe Qualité",
     "  6. LIST_GUID_FOURNISSEURS → ID liste Fournisseurs",
     "  7. LIST_GUID_TYPES_DOCUMENTS → ID liste Types_Documents",
+    "  8. LIST_GUID_MATIERES_PREMIERES → ID liste Matieres_Premieres",
     "",
     "NOTE : Le fichier joint via Forms est sauvegardé dans OneDrive du créateur du form.",
     "       Ce flux le copie automatiquement dans SharePoint."
@@ -120,6 +121,24 @@
           "authentication": "@parameters('$authentication')"
         }
       },
+      "Chercher_matiere": {
+        "type": "OpenApiConnection",
+        "runAfter": { "Chercher_fournisseur": ["Succeeded"] },
+        "inputs": {
+          "host": {
+            "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+            "connectionName": "shared_sharepointonline",
+            "operationId": "GetItems"
+          },
+          "parameters": {
+            "dataset": "VOTRE_SITE_URL",
+            "table": "LIST_GUID_MATIERES_PREMIERES",
+            "$filter": "Title eq '@{outputs('Obtenir_details_reponse')?['body/answers/2/answer']}'",
+            "$top": 1
+          },
+          "authentication": "@parameters('$authentication')"
+        }
+      },
       "Construire_nom_fichier": {
         "type": "InitializeVariable",
         "runAfter": { "Extraire_contenu_fichier_OneDrive": ["Succeeded"] },
@@ -127,7 +146,7 @@
           "variables": [{
             "name": "nomFichier",
             "type": "string",
-            "value": "@{outputs('Obtenir_details_reponse')?['body/answers/1/answer']}_@{outputs('Obtenir_details_reponse')?['body/answers/2/answer']}_@{outputs('Obtenir_details_reponse')?['body/answers/3/answer']}_@{outputs('Obtenir_details_reponse')?['body/answers/5/answer/name']}"
+            "value": "@{outputs('Obtenir_details_reponse')?['body/answers/1/answer']}_@{outputs('Obtenir_details_reponse')?['body/answers/2/answer']}_@{outputs('Obtenir_details_reponse')?['body/answers/3/answer']}_@{outputs('Obtenir_details_reponse')?['body/answers/4/answer/name']}"
           }]
         }
       },
@@ -151,7 +170,7 @@
       },
       "Creer_item_dans_liste_Documents": {
         "type": "OpenApiConnection",
-        "runAfter": { "Copier_fichier_vers_SharePoint": ["Succeeded"], "Chercher_type_document": ["Succeeded"] },
+        "runAfter": { "Copier_fichier_vers_SharePoint": ["Succeeded"], "Chercher_type_document": ["Succeeded"], "Chercher_matiere": ["Succeeded"] },
         "inputs": {
           "host": {
             "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
@@ -169,7 +188,7 @@
             "item/LienFichier": "@outputs('Copier_fichier_vers_SharePoint')?['body/{Link}']",
             "item/FournisseurId": "@first(outputs('Chercher_fournisseur')?['body/value'])?['ID']",
             "item/TypeDocumentId": "@first(outputs('Chercher_type_document')?['body/value'])?['ID']",
-            "item/MatierePremiereText": "@outputs('Obtenir_details_reponse')?['body/answers/2/answer']",
+            "item/MatierePremiereId": "@first(outputs('Chercher_matiere')?['body/value'])?['ID']",
             "item/Commentaires": "Déposé via portail fournisseur le @{utcNow('dd/MM/yyyy')} par @{outputs('Obtenir_details_reponse')?['body/responderEmailAddress']}"
           },
           "authentication": "@parameters('$authentication')"
@@ -187,8 +206,8 @@
           "parameters": {
             "emailMessage/To": "@outputs('Obtenir_details_reponse')?['body/responderEmailAddress']",
             "emailMessage/Cc": "EMAIL_QUALITE",
-            "emailMessage/Subject": "✅ Document bien reçu — @{outputs('Obtenir_details_reponse')?['body/answers/2/answer']}",
-            "emailMessage/Body": "<div style='font-family:Segoe UI,Arial,sans-serif'><div style='background:#107C10;padding:16px;color:#fff'><strong>Document reçu avec succès</strong></div><div style='padding:20px;border:1px solid #E1DFDD'><p>Bonjour,</p><p>Nous confirmons la bonne réception de votre document :</p><table style='border-collapse:collapse;width:100%;margin:12px 0'><tr><td style='padding:6px 12px;background:#FAF9F8;border:1px solid #E1DFDD'><strong>Code fournisseur</strong></td><td style='padding:6px 12px;border:1px solid #E1DFDD'>@{outputs('Obtenir_details_reponse')?['body/answers/1/answer']}</td></tr><tr><td style='padding:6px 12px;background:#FAF9F8;border:1px solid #E1DFDD'><strong>Type de document</strong></td><td style='padding:6px 12px;border:1px solid #E1DFDD'>@{outputs('Obtenir_details_reponse')?['body/answers/2/answer']}</td></tr><tr><td style='padding:6px 12px;background:#FAF9F8;border:1px solid #E1DFDD'><strong>Fichier reçu</strong></td><td style='padding:6px 12px;border:1px solid #E1DFDD'>@{outputs('Obtenir_details_reponse')?['body/answers/5/answer/name']}</td></tr><tr><td style='padding:6px 12px;background:#FAF9F8;border:1px solid #E1DFDD'><strong>Date de réception</strong></td><td style='padding:6px 12px;border:1px solid #E1DFDD'>@{utcNow('dd/MM/yyyy HH:mm')}</td></tr></table><p>Notre équipe Qualité va analyser votre document et vous recontactera si nécessaire.</p><p>Cordialement,<br><strong>Service Qualité</strong></p></div></div>",
+            "emailMessage/Subject": "✅ Document bien reçu — @{outputs('Obtenir_details_reponse')?['body/answers/1/answer']}",
+            "emailMessage/Body": "<div style='font-family:Segoe UI,Arial,sans-serif'><div style='background:#107C10;padding:16px;color:#fff'><strong>Document reçu avec succès</strong></div><div style='padding:20px;border:1px solid #E1DFDD'><p>Bonjour,</p><p>Nous confirmons la bonne réception de votre document :</p><table style='border-collapse:collapse;width:100%;margin:12px 0'><tr><td style='padding:6px 12px;background:#FAF9F8;border:1px solid #E1DFDD'><strong>Code fournisseur</strong></td><td style='padding:6px 12px;border:1px solid #E1DFDD'>@{outputs('Obtenir_details_reponse')?['body/answers/0/answer']}</td></tr><tr><td style='padding:6px 12px;background:#FAF9F8;border:1px solid #E1DFDD'><strong>Type de document</strong></td><td style='padding:6px 12px;border:1px solid #E1DFDD'>@{outputs('Obtenir_details_reponse')?['body/answers/1/answer']}</td></tr><tr><td style='padding:6px 12px;background:#FAF9F8;border:1px solid #E1DFDD'><strong>Fichier reçu</strong></td><td style='padding:6px 12px;border:1px solid #E1DFDD'>@{outputs('Obtenir_details_reponse')?['body/answers/4/answer/name']}</td></tr><tr><td style='padding:6px 12px;background:#FAF9F8;border:1px solid #E1DFDD'><strong>Date de réception</strong></td><td style='padding:6px 12px;border:1px solid #E1DFDD'>@{utcNow('dd/MM/yyyy HH:mm')}</td></tr></table><p>Notre équipe Qualité va analyser votre document et vous recontactera si nécessaire.</p><p>Cordialement,<br><strong>Service Qualité</strong></p></div></div>",
             "emailMessage/IsHtml": true
           },
           "authentication": "@parameters('$authentication')"

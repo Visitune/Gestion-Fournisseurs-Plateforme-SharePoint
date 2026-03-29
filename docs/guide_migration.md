@@ -135,10 +135,10 @@ cd "C:\...\PROJET SHAREPOINT FRS"
 
 ### Résultats générés
 
-Le script crée un dossier `Export_1107_NACTIS_[timestamp]` contenant :
+Le script crée un dossier `Export_1107` contenant :
 
 ```
-Export_1107_NACTIS_20260101_103045/
+Export_1107/
 ├── FT/
 │   └── 1107_NACTIS_FT_02145_20260101_FicheTech_OrFleur.pdf
 ├── CERTIFICATS/
@@ -148,7 +148,7 @@ Export_1107_NACTIS_20260101_103045/
 │   └── ...
 ├── DIVERS/
 │   └── (fichiers non classifiés — à vérifier)
-└── Rapport_Migration_1107_NACTIS_20260101_103045.csv
+└── Rapport_1107.txt
 ```
 
 ### Traitement des fichiers non classifiés
@@ -171,10 +171,9 @@ où elle n'a pas pu être calculée.
 ### Test préalable (DryRun)
 
 ```powershell
-.\Import-ExcelData.ps1 `
-    -CsvPath ".\suivi_fournisseurs.csv" `
-    -ConfigPath "..\..\config\CLIENT_NOM.json" `
-    -Mode DryRun
+# Vérifier d'abord le contenu du CSV de rapport généré par GenerateurBaseFournisseur.ps1
+# (fichier Base_<SupplierCode>.csv dans le dossier de sortie)
+Import-Csv ".\Base_1107.csv" | Format-Table -AutoSize | Out-Host -Paging
 ```
 
 Vérifier le fichier `Preview_Import_*.csv` généré :
@@ -185,15 +184,16 @@ Vérifier le fichier `Preview_Import_*.csv` généré :
 
 ### Adapter le mapping si nécessaire
 
-Si les noms de colonnes du CSV client diffèrent, modifier `$ColMapping` dans le script.
+Si les noms de colonnes du CSV client diffèrent, modifier `$DetectionRules` dans `GenerateurBaseFournisseur.ps1`.
 
 ### Import réel
 
 ```powershell
-.\Import-ExcelData.ps1 `
-    -CsvPath ".\suivi_fournisseurs.csv" `
-    -ConfigPath "..\..\config\CLIENT_NOM.json" `
-    -Mode Import
+# Upload des fichiers physiques et CSV vers SharePoint via PnP PowerShell
+# (les fichiers ont déjà été organisés par GenerateurBaseFournisseur.ps1 dans Export_<SupplierCode>/)
+Add-PnPFile -Path ".\Export_1107\*.pdf" `
+    -Folder "Documents_Fichiers" `
+    -Connection (Connect-PnPOnline -Url $SiteUrl -Interactive -ClientId $ClientId -ReturnConnection)
 ```
 
 ---

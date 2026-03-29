@@ -80,7 +80,7 @@
           },
           "Verifier_J90": {
             "type": "If",
-            "expression": { "equals": ["@variables('jours')", 90] },
+            "expression": { "and": [{ "equals": ["@variables('jours')", 90] }, { "equals": ["@items('Pour_chaque_document')?['TypeDocument/AlerteJ90']", true] }] },
             "actions": {
               "Email_alerte_J90": {
                 "type": "OpenApiConnection",
@@ -106,7 +106,7 @@
           },
           "Verifier_J30": {
             "type": "If",
-            "expression": { "equals": ["@variables('jours')", 30] },
+            "expression": { "and": [{ "equals": ["@variables('jours')", 30] }, { "equals": ["@items('Pour_chaque_document')?['TypeDocument/AlerteJ30']", true] }] },
             "actions": {
               "Obtenir_fournisseur_pour_J30": {
                 "type": "OpenApiConnection",
@@ -150,7 +150,7 @@
           },
           "Verifier_J7": {
             "type": "If",
-            "expression": { "equals": ["@variables('jours')", 7] },
+            "expression": { "and": [{ "equals": ["@variables('jours')", 7] }, { "equals": ["@items('Pour_chaque_document')?['TypeDocument/AlerteJ7']", true] }] },
             "actions": {
               "Email_alerte_J7_URGENT": {
                 "type": "OpenApiConnection",
