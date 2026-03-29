@@ -80,7 +80,7 @@
             "operationId": "GetFileContent"
           },
           "parameters": {
-            "id": "@{outputs('Obtenir_details_reponse')?['body/responderEmailAddress']}/FormFiles/@{outputs('Obtenir_details_reponse')?['body/answers/5/answer/id']}"
+            "id": "@{outputs('Obtenir_details_reponse')?['body/responderEmailAddress']}/FormFiles/@{outputs('Obtenir_details_reponse')?['body/answers/4/answer/id']}"
           },
           "authentication": "@parameters('$authentication')"
         }
@@ -161,7 +161,7 @@
           },
           "parameters": {
             "dataset": "VOTRE_SITE_URL",
-            "folderPath": "/LIBRARY_NAME/@{outputs('Obtenir_details_reponse')?['body/answers/1/answer']}",
+            "folderPath": "/LIBRARY_NAME/@{outputs('Obtenir_details_reponse')?['body/answers/0/answer']}/@{outputs('Obtenir_details_reponse')?['body/answers/1/answer']}",
             "name": "@variables('nomFichier')",
             "body": "@body('Extraire_contenu_fichier_OneDrive')"
           },

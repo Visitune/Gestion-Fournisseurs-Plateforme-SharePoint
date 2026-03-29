@@ -8,7 +8,7 @@ La migration se déroule en 4 étapes :
 ÉTAPE 1 : Audit & préparation
 ÉTAPE 2 : Déploiement SharePoint (script Deploy-FRS.ps1)
 ÉTAPE 3 : Migration des documents physiques (script GenerateurBaseFournisseur.ps1)
-ÉTAPE 4 : Import des données Excel (script Import-ExcelData.ps1)
+ÉTAPE 4 : Import des données dans SharePoint (via PnP PowerShell + CSV généré)
 ```
 
 Durée estimée : 1 à 3 jours selon le volume documentaire.
@@ -48,15 +48,15 @@ Vérifier et nettoyer l'Excel avant conversion en CSV :
 1. **Supprimer** les lignes d'en-tête multiples ou les lignes de titre fusionnées
 2. **Normaliser** les dates : toutes au format `dd/MM/yyyy` (éviter les textes "N/A" ou tirets)
 3. **Vérifier** le format fournisseur : doit être `CODE : NOM` (ex: `1107 : NACTIS`)
-4. **Identifier** les colonnes présentes vs le mapping dans `Import-ExcelData.ps1`
-5. **Adapter** le mapping `$ColMapping` si les noms de colonnes diffèrent
+4. **Identifier** les colonnes présentes vs les champs de la liste Documents dans SharePoint
+5. **Adapter** la règle `$DetectionRules` dans `GenerateurBaseFournisseur.ps1` si les patterns de nommage diffèrent
 
 ### 1.3 Conversion Excel → CSV
 
 Dans Excel :
 1. **Fichier** → **Enregistrer sous**
 2. Type : **CSV UTF-8 (délimité par des virgules)**
-   > Si Excel utilise "," comme séparateur — changer en ";" dans `Import-ExcelData.ps1`
+   > `GenerateurBaseFournisseur.ps1` produit un CSV avec ";" comme séparateur (compatible Excel français)
 3. Enregistrer dans le dossier de travail sous `suivi_fournisseurs.csv`
 
 ### 1.4 Exporter les listes SharePoint de référence
@@ -161,8 +161,7 @@ Options :
 
 ### Compléter les dates d'expiration manquantes
 
-Ouvrir le CSV de rapport et compléter la colonne `DateExpiration` pour les documents
-où elle n'a pas pu être calculée.
+Ouvrir le fichier `Base_<SupplierCode>.csv` généré et compléter la colonne `Date_Validite` pour les documents où elle n'a pas pu être calculée (colonne vide = document sans date connue).
 
 ---
 

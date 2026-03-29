@@ -101,17 +101,21 @@ Durée : 3 à 5 minutes. Crée les 6 listes + bibliothèque + 8 types de documen
 
 ### Étape 3 — Importer les 5 flux Power Automate
 
-Dans Power Automate → **Importer un package** → sélectionner chaque fichier JSON.
+**Comment importer les flux :**
+1. Dans Power Automate → **Mes flux** → **Nouveau flux** → **Flux planifié** (pour Flux 1) ou **Flux automatisé** (pour Flux 2–5)
+2. Dans l'éditeur → bouton `...` → **Modifier en JSON** → coller le contenu du fichier JSON
+3. Enregistrer et configurer les connexions (SharePoint, Office 365 Outlook, Microsoft Forms)
 
-Après import, remplacer dans chaque flux :
+Après import, remplacer dans chaque flux les paramètres en majuscules :
 | Paramètre | Flux concernés | Valeur |
 |---|---|---|
 | `VOTRE_SITE_URL` | Tous | URL du site SP (ex: `https://acme.sharepoint.com/sites/GestionFournisseurs`) |
-| `LIST_GUID_DOCUMENTS` | Tous | ID de la liste **Documents** (visible dans l'URL des paramètres de liste) |
+| `LIST_GUID_DOCUMENTS` | Tous | ID de la liste **Documents** (SP → Paramètres liste → URL → `List=`) |
 | `LIST_GUID_FOURNISSEURS` | Flux 3, 5 | ID de la liste **Fournisseurs** |
 | `LIST_GUID_TYPES_DOCUMENTS` | Flux 5 | ID de la liste **Types_Documents** |
+| `LIST_GUID_MATIERES_PREMIERES` | Flux 5 | ID de la liste **Matieres_Premieres** |
 | `EMAIL_QUALITE` | Flux 2, 3, 5 | Email équipe Qualité |
-| `EMAIL_ACHATS` | Flux 3 | Email équipe Achats |
+| `EMAIL_ACHATS` | Flux 2, 3 | Email équipe Achats |
 | `VOTRE_FORM_ID` | Flux 5 | ID du formulaire Microsoft Forms (portail dépôt fournisseur) |
 
 > **Alternative ALM** : pour un déploiement multi-environnements (dev → prod) avec versioning Git,
