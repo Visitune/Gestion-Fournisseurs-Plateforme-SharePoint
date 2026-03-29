@@ -392,8 +392,9 @@ PDF, XLSX, XLS, DOCX, DOC, et tout format paramétrable dans `Types_Documents`.
 
 ```
 1. Création de la fiche Fournisseur (Statut: En cours)
-2. Le système génère la checklist documentaire
-   (tous les Types_Documents où Niveau = Fournisseur et Obligatoire = Oui)
+2. Le système génère automatiquement la checklist documentaire
+   → Flux 6 (flow_init_checklist_fournisseur) crée un item "Manquant" pour chaque
+     TypeDocument où NiveauRattachement = "Fournisseur" et Obligatoire = Oui
 3. Upload des documents requis (par Qualité/Achats ou via portail fournisseur)
 4. Validation de chaque document par la personne habilitée (Qualité)
 5. Quand tous les documents obligatoires sont Valides → Statut Fournisseur → Approuvé

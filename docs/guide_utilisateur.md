@@ -52,7 +52,7 @@ La page d'accueil affiche immédiatement :
    - Type de fournisseur
    - Contact qualité (email)
 3. Cliquer **Enregistrer** — le fournisseur est créé avec le statut **"En cours"**
-4. La plateforme génère automatiquement la liste des documents obligatoires à fournir
+4. En moins d'une minute, la plateforme génère automatiquement la liste des documents obligatoires à fournir (Flux 6 — un item "Manquant" par type de document requis au niveau Fournisseur)
 5. Uploader chaque document requis (voir section 5)
 6. Quand tous les documents obligatoires sont validés → changer le statut en **"Approuvé"**
 
@@ -72,7 +72,8 @@ La page d'accueil affiche immédiatement :
    - Sélectionner le fournisseur (doit être Approuvé)
    - Sélectionner la matière
    - Statut : "En approbation"
-4. Uploader les documents spécifiques à cette source (FT, CDC...)
+4. En moins d'une minute, la plateforme génère automatiquement les documents requis pour cette source (Flux 7 — Fiche Technique, CDC, Déclarations…)
+5. Uploader les documents spécifiques à cette source (FT, CDC...)
 5. Après validation → changer le statut du lien en **"Actif"**
 
 ---

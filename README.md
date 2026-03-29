@@ -27,11 +27,13 @@ Le fichier `index.html` sert de guide visuel et d'interface de démonstration.
 │   │                                        Crée : 6 listes + bibliothèque Documents_Fichiers
 │   └── automate/
 │       └── flows/
-│           ├── flow_calcul_statuts.json       ← Flux 1 — Calcul statuts quotidien
-│           ├── flow_alertes_expiration.json   ← Flux 2 — Alertes J-90/J-30/J-7
-│           ├── flow_relance_fournisseur.json  ← Flux 3 — Relance manuelle fournisseur
-│           ├── flow_nouveau_document.json     ← Flux 4 — Archivage + versioning auto
-│           └── flow_portail_fournisseur.json  ← Flux 5 — Portail Microsoft Forms
+│           ├── flow_calcul_statuts.json               ← Flux 1 — Calcul statuts quotidien
+│           ├── flow_alertes_expiration.json           ← Flux 2 — Alertes J-90/J-30/J-7
+│           ├── flow_relance_fournisseur.json          ← Flux 3 — Relance manuelle fournisseur
+│           ├── flow_nouveau_document.json             ← Flux 4 — Archivage + versioning auto
+│           ├── flow_portail_fournisseur.json          ← Flux 5 — Portail Microsoft Forms
+│           ├── flow_init_checklist_fournisseur.json   ← Flux 6 — Génère checklist à la création fournisseur
+│           └── flow_init_checklist_lien.json          ← Flux 7 — Génère checklist à la création lien Fourn×Mat
 │
 ├── GenerateurBaseFournisseur.ps1         ← Script optionnel : génère données de migration
 │                                            depuis fichier Excel client (Phase 2)
@@ -99,10 +101,10 @@ Durée : 3 à 5 minutes. Crée les 6 listes + bibliothèque + 8 types de documen
 | Liste analyse fraude | `Analyse_Fraude` |
 | Bibliothèque fichiers | `Documents_Fichiers` |
 
-### Étape 3 — Importer les 5 flux Power Automate
+### Étape 3 — Importer les 7 flux Power Automate
 
 **Comment importer les flux :**
-1. Dans Power Automate → **Mes flux** → **Nouveau flux** → **Flux planifié** (pour Flux 1) ou **Flux automatisé** (pour Flux 2–5)
+1. Dans Power Automate → **Mes flux** → **Nouveau flux** → **Flux planifié** (pour Flux 1) ou **Flux automatisé** (pour Flux 2–7)
 2. Dans l'éditeur → bouton `...` → **Modifier en JSON** → coller le contenu du fichier JSON
 3. Enregistrer et configurer les connexions (SharePoint, Office 365 Outlook, Microsoft Forms)
 
@@ -111,9 +113,10 @@ Après import, remplacer dans chaque flux les paramètres en majuscules :
 |---|---|---|
 | `VOTRE_SITE_URL` | Tous | URL du site SP (ex: `https://acme.sharepoint.com/sites/GestionFournisseurs`) |
 | `LIST_GUID_DOCUMENTS` | Tous | ID de la liste **Documents** (SP → Paramètres liste → URL → `List=`) |
-| `LIST_GUID_FOURNISSEURS` | Flux 3, 5 | ID de la liste **Fournisseurs** |
-| `LIST_GUID_TYPES_DOCUMENTS` | Flux 5 | ID de la liste **Types_Documents** |
+| `LIST_GUID_FOURNISSEURS` | Flux 3, 5, 6 | ID de la liste **Fournisseurs** |
+| `LIST_GUID_TYPES_DOCUMENTS` | Flux 5, 6, 7 | ID de la liste **Types_Documents** |
 | `LIST_GUID_MATIERES_PREMIERES` | Flux 5 | ID de la liste **Matieres_Premieres** |
+| `LIST_GUID_LIENS_FOURN_MAT` | Flux 7 | ID de la liste **Liens_Fourn_Mat** |
 | `EMAIL_QUALITE` | Flux 2, 3, 5 | Email équipe Qualité |
 | `EMAIL_ACHATS` | Flux 2, 3 | Email équipe Achats |
 | `VOTRE_FORM_ID` | Flux 5 | ID du formulaire Microsoft Forms (portail dépôt fournisseur) |

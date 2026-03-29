@@ -1,0 +1,133 @@
+{
+  "_comment": [
+    "FLUX 7 — Initialisation checklist documentaire (nouveau lien Fournisseur×Matière)",
+    "",
+    "RÔLE : À chaque création d'un item dans Liens_Fourn_Mat :",
+    "         1. Récupère tous les Types_Documents de niveau 'Matière' ou 'Fournisseur + Matière'",
+    "            et Obligatoire = Oui",
+    "         2. Pour chaque type, vérifie si un document courant existe déjà",
+    "            (même FournisseurId + MatierePremiereId + TypeDocumentId)",
+    "         3. Si absent → crée un item Documents avec Statut = 'Manquant'",
+    "",
+    "PRÉREQUIS :",
+    "  - Le lien Fourn×Mat doit pointer vers un Fournisseur et une MatierePremiere valides",
+    "  - Flux 4 (flow_nouveau_document) doit être actif",
+    "",
+    "CONFIGURATION REQUISE APRÈS IMPORT :",
+    "  1. VOTRE_SITE_URL              → URL du site SP",
+    "  2. LIST_GUID_LIENS_FOURN_MAT   → ID liste Liens_Fourn_Mat",
+    "  3. LIST_GUID_DOCUMENTS         → ID liste Documents",
+    "  4. LIST_GUID_TYPES_DOCUMENTS   → ID liste Types_Documents"
+  ],
+  "definition": {
+    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "$connections": { "defaultValue": {}, "type": "Object" },
+      "$authentication": { "defaultValue": {}, "type": "SecureObject" }
+    },
+    "triggers": {
+      "Quand_lien_fourn_mat_cree": {
+        "type": "OpenApiConnection",
+        "inputs": {
+          "host": {
+            "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+            "connectionName": "shared_sharepointonline",
+            "operationId": "GetOnNewItems"
+          },
+          "parameters": {
+            "dataset": "VOTRE_SITE_URL",
+            "table": "LIST_GUID_LIENS_FOURN_MAT"
+          },
+          "authentication": "@parameters('$authentication')"
+        },
+        "recurrence": { "frequency": "Minute", "interval": 1 },
+        "splitOn": "@triggerOutputs()?['body/value']"
+      }
+    },
+    "actions": {
+      "Obtenir_types_niveau_matiere": {
+        "type": "OpenApiConnection",
+        "runAfter": {},
+        "inputs": {
+          "host": {
+            "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+            "connectionName": "shared_sharepointonline",
+            "operationId": "GetItems"
+          },
+          "parameters": {
+            "dataset": "VOTRE_SITE_URL",
+            "table": "LIST_GUID_TYPES_DOCUMENTS",
+            "$filter": "(NiveauRattachement eq 'Matière' or NiveauRattachement eq 'Fournisseur + Matière') and Obligatoire eq 1",
+            "$select": "ID,Title,DureeValidite,NiveauRattachement",
+            "$top": 100
+          },
+          "authentication": "@parameters('$authentication')"
+        }
+      },
+      "Pour_chaque_type_matiere": {
+        "type": "Foreach",
+        "foreach": "@outputs('Obtenir_types_niveau_matiere')?['body/value']",
+        "runAfter": { "Obtenir_types_niveau_matiere": ["Succeeded"] },
+        "actions": {
+          "Verifier_document_existant": {
+            "type": "OpenApiConnection",
+            "runAfter": {},
+            "inputs": {
+              "host": {
+                "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                "connectionName": "shared_sharepointonline",
+                "operationId": "GetItems"
+              },
+              "parameters": {
+                "dataset": "VOTRE_SITE_URL",
+                "table": "LIST_GUID_DOCUMENTS",
+                "$filter": "FournisseurId eq @{triggerBody()?['FournisseurId']} and MatierePremiereId eq @{triggerBody()?['MatierePremiereId']} and TypeDocumentId eq @{items('Pour_chaque_type_matiere')?['ID']} and DocumentCourant eq 1",
+                "$top": 1
+              },
+              "authentication": "@parameters('$authentication')"
+            }
+          },
+          "Creer_si_absent": {
+            "type": "If",
+            "expression": {
+              "equals": [
+                "@length(outputs('Verifier_document_existant')?['body/value'])",
+                0
+              ]
+            },
+            "actions": {
+              "Creer_item_manquant": {
+                "type": "OpenApiConnection",
+                "runAfter": {},
+                "inputs": {
+                  "host": {
+                    "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                    "connectionName": "shared_sharepointonline",
+                    "operationId": "PostItem"
+                  },
+                  "parameters": {
+                    "dataset": "VOTRE_SITE_URL",
+                    "table": "LIST_GUID_DOCUMENTS",
+                    "item/Title": "@{items('Pour_chaque_type_matiere')?['Title']} — @{triggerBody()?['Fournisseur/Title']} / @{triggerBody()?['MatierePremiere/Title']}",
+                    "item/Statut": "Manquant",
+                    "item/TypeDocumentId": "@items('Pour_chaque_type_matiere')?['ID']",
+                    "item/FournisseurId": "@triggerBody()?['FournisseurId']",
+                    "item/MatierePremiereId": "@triggerBody()?['MatierePremiereId']",
+                    "item/LienFournMatId": "@triggerBody()?['ID']",
+                    "item/DocumentCourant": true,
+                    "item/Version": 0,
+                    "item/Conformite": "En attente"
+                  },
+                  "authentication": "@parameters('$authentication')"
+                }
+              }
+            },
+            "else": { "actions": {} },
+            "runAfter": { "Verifier_document_existant": ["Succeeded"] }
+          }
+        }
+      }
+    }
+  }
+}
