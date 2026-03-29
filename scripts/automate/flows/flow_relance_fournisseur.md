@@ -102,7 +102,7 @@ Déclencheur : Création d'un élément dans la liste Documents
 2. Rechercher l'ancien document courant de même type pour la même entité :
    Filtre : TypeDocument = [même] ET [même entité] ET DocumentCourant = 1 ET ID ≠ [nouveau]
 3. Si trouvé :
-   → Mettre à jour l'ancien : EstCourant = Non, Statut = "Obsolète"
+   → Mettre à jour l'ancien : DocumentCourant = false, Statut = "Obsolète"
    → Incrémenter Version du nouveau = ancien.Version + 1
 4. Notifier Qualité : "Nouveau document reçu — en attente de validation"
 ```

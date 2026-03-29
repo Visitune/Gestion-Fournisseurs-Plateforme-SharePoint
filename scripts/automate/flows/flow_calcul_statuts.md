@@ -17,7 +17,7 @@
 Chaque jour à 08h00 :
 
 Pour chaque document dans la liste Documents où :
-  EstCourant = Oui
+  DocumentCourant = Oui
   ET Statut ≠ Obsolète
   ET Statut ≠ Manquant
 
@@ -49,7 +49,7 @@ Pour chaque document dans la liste Documents où :
 - Nom de liste : `Documents`
 - Requête de filtre (ODATA) :
   ```
-  EstCourant eq 1 and Statut ne 'Obsolète' and Statut ne 'Manquant'
+  DocumentCourant eq 1 and Statut ne 'Obsolète' and Statut ne 'Manquant'
   ```
 - Développer les champs : `TypeDocument/AlerteJ90,TypeDocument/AlerteJ30,TypeDocument/AlerteJ7`
 

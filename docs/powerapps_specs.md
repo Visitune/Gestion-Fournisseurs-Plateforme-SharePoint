@@ -40,7 +40,7 @@
 // Compter les documents expirés
 CountIf(
     Documents,
-    Statut = "Expiré" && EstCourant = true
+    Statut = "Expiré" && DocumentCourant = true
 )
 
 // Compter les documents J-30
@@ -48,7 +48,7 @@ CountIf(
     Documents,
     DateExpiration <= DateAdd(Today(), 30, TimeUnit.Days) &&
     DateExpiration > Today() &&
-    EstCourant = true
+    DocumentCourant = true
 )
 ```
 

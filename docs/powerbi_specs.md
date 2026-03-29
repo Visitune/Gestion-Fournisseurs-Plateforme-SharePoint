@@ -61,15 +61,15 @@ Analyse_Fraude
 -- % Documents valides (parmi les documents courants)
 % Conformite =
 DIVIDE(
-    COUNTROWS(FILTER(Documents, Documents[Statut] = "Valide" && Documents[EstCourant] = TRUE())),
-    COUNTROWS(FILTER(Documents, Documents[EstCourant] = TRUE() && Documents[Statut] <> "Obsolète")),
+    COUNTROWS(FILTER(Documents, Documents[Statut] = "Valide" && Documents[DocumentCourant] = TRUE())),
+    COUNTROWS(FILTER(Documents, Documents[DocumentCourant] = TRUE() && Documents[Statut] <> "Obsolète")),
     0
 ) * 100
 
 -- Nombre de documents expirés
 Nb Expirés =
 COUNTROWS(
-    FILTER(Documents, Documents[Statut] = "Expiré" && Documents[EstCourant] = TRUE())
+    FILTER(Documents, Documents[Statut] = "Expiré" && Documents[DocumentCourant] = TRUE())
 )
 
 -- Nombre de documents expirant dans 30 jours
@@ -77,7 +77,7 @@ Nb Expire Bientôt =
 COUNTROWS(
     FILTER(
         Documents,
-        Documents[EstCourant] = TRUE() &&
+        Documents[DocumentCourant] = TRUE() &&
         Documents[DateExpiration] > TODAY() &&
         Documents[DateExpiration] <= TODAY() + 30
     )
@@ -89,8 +89,8 @@ COUNTROWS(FILTER(Documents, Documents[Statut] = "Manquant"))
 
 -- Score conformité fournisseur (pour un fournisseur donné)
 Score Fournisseur =
-VAR docsValides = COUNTROWS(FILTER(Documents, Documents[Statut] = "Valide" && Documents[EstCourant] = TRUE()))
-VAR docsTotal   = COUNTROWS(FILTER(Documents, Documents[EstCourant] = TRUE() && Documents[Statut] <> "Obsolète"))
+VAR docsValides = COUNTROWS(FILTER(Documents, Documents[Statut] = "Valide" && Documents[DocumentCourant] = TRUE()))
+VAR docsTotal   = COUNTROWS(FILTER(Documents, Documents[DocumentCourant] = TRUE() && Documents[Statut] <> "Obsolète"))
 RETURN IF(docsTotal = 0, 0, DIVIDE(docsValides, docsTotal) * 100)
 
 -- Fournisseurs conformes (score > 80%)
@@ -111,7 +111,7 @@ Nb Expirés par Mois =
 CALCULATE(
     COUNTROWS(Documents),
     Documents[Statut] = "Expiré",
-    Documents[EstCourant] = TRUE()
+    Documents[DocumentCourant] = TRUE()
 )
 
 -- Délai moyen de renouvellement (jours entre expiration et nouveau document)

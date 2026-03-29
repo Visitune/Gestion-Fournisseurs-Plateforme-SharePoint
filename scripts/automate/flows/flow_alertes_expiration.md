@@ -15,7 +15,7 @@
 ## Logique métier
 
 ```
-Chaque jour à 08h30, pour chaque document actif (EstCourant = Oui) :
+Chaque jour à 08h30, pour chaque document actif (DocumentCourant = true) :
 
   Calculer DiffJours = DateExpiration - Aujourd'hui
 
@@ -54,9 +54,10 @@ varEmailAchats   = "achats@client.fr"
 - Action : **Obtenir des éléments** (SharePoint) — Liste `Documents`
 - Filtre ODATA :
   ```
-  EstCourant eq 1 and Statut ne 'Obsolète' and Statut ne 'Manquant' and DateExpiration ne null
+  DocumentCourant eq 1 and DateExpiration ne null and (Statut eq 'Valide' or Statut eq 'Expire bientôt')
   ```
-- Développer : `TypeDocument/AlerteJ90,TypeDocument/AlerteJ30,TypeDocument/AlerteJ7,TypeDocument/Title,Fournisseur/Title,Fournisseur/EmailQualite,Matiere/Title`
+- Développer : `TypeDocument,Fournisseur,MatierePremiere`
+- Sélectionner : `ID,Title,DateExpiration,Statut,FournisseurId,TypeDocument/Title,TypeDocument/AlerteJ90,TypeDocument/AlerteJ30,TypeDocument/AlerteJ7,Fournisseur/Title,Fournisseur/EmailContactQualite,MatierePremiere/Title`
 
 ### Étape 3 — Boucle sur chaque document
 Pour chaque document, calculer `varDiffJours` (voir flux calcul_statuts).
@@ -74,7 +75,7 @@ SI varDiffJours = 90 ET items()?['TypeDocument/AlerteJ90'] = true
 ```
 SI varDiffJours = 30 ET items()?['TypeDocument/AlerteJ30'] = true
   → Envoyer email
-    Destinataires : varEmailQualite ; varEmailAchats ; items()?['Fournisseur/EmailQualite']
+    Destinataires : varEmailQualite ; varEmailAchats ; items()?['Fournisseur/EmailContactQualite']
     Sujet : [ALERTE J-30] [TypeDocument] — [Fournisseur] / [Matière]
 ```
 
@@ -82,7 +83,7 @@ SI varDiffJours = 30 ET items()?['TypeDocument/AlerteJ30'] = true
 ```
 SI varDiffJours = 7 ET items()?['TypeDocument/AlerteJ7'] = true
   → Envoyer email URGENT
-    Destinataires : varEmailQualite ; varEmailAchats ; items()?['Fournisseur/EmailQualite']
+    Destinataires : varEmailQualite ; varEmailAchats ; items()?['Fournisseur/EmailContactQualite']
     Sujet : ⚠ URGENT [J-7] [TypeDocument] — [Fournisseur] / [Matière]
 ```
 
