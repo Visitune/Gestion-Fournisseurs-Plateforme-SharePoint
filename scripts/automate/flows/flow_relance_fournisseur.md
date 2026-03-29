@@ -22,8 +22,8 @@ Déclenchement : clic sur bouton "Relancer ce fournisseur"
 3. Rechercher tous les documents actifs de ce fournisseur
    où Statut = "Expiré" OU Statut = "Manquant" OU Statut = "Expire bientôt"
 4. Construire un tableau HTML avec la liste des documents
-5. Envoyer email au fournisseur (et en copie à Qualité + Achats)
-6. Créer un enregistrement de relance dans la liste Relances
+5. Si des documents sont trouvés : envoyer email au fournisseur (EmailContactQualite), copie à Qualité
+6. Sinon : notifier l'équipe Qualité qu'aucun document n'est à relancer
 ```
 
 ---
@@ -41,35 +41,40 @@ Déclenchement : clic sur bouton "Relancer ce fournisseur"
 
 ### Étape 1 — Obtenir la fiche fournisseur
 - Action : **Obtenir un élément** (SharePoint)
-- Liste : `Fournisseurs`, ID : `triggerBody()?['entity']?['ID']`
+- Liste : `Fournisseurs`, ID : `triggerBody()?['ID']`
+- Action dans le JSON : `Obtenir_details_fournisseur`
 
 ### Étape 2 — Obtenir les documents à renouveler de ce fournisseur
 - Action : **Obtenir des éléments** (SharePoint) — Liste `Documents`
+- Action dans le JSON : `Obtenir_documents_problematiques`
 - Filtre ODATA :
   ```
-  FournisseurLookupId eq [ID_Fournisseur]
-  and EstCourant eq 1
-  and (Statut eq 'Expiré' or Statut eq 'Manquant' or Statut eq 'Expire bientôt')
+  FournisseurId eq @{triggerBody()?['ID']}
+  and DocumentCourant eq 1
+  and (Statut eq 'Expiré' or Statut eq 'Expire bientôt' or Statut eq 'Manquant')
   ```
-- Développer : `TypeDocument/Title,TypeDocument/DureeValiditeJours,Matiere/Title`
+- Développer : `TypeDocument,MatierePremiere`
+- Sélectionner : `ID,Title,Statut,DateExpiration,TypeDocument/Title,TypeDocument/DureeValidite,MatierePremiere/Title`
 
 ### Étape 3 — Construire le tableau HTML
 - Action : **Créer une table HTML** à partir du résultat
+- Action dans le JSON : `Construire_tableau_html`
 - Colonnes à afficher :
   ```
   Type de document  → items()?['TypeDocument/Title']
-  Matière           → items()?['Matiere/Title']
+  Matière           → items()?['MatierePremiere/Title']
   Statut            → items()?['Statut']
   Expiration        → formatDateTime(items()?['DateExpiration'], 'dd/MM/yyyy')
   ```
 
 ### Étape 4 — Envoyer l'email
 - Action : **Envoyer un e-mail (V2)** — Office 365 Outlook
-- À : `outputs('Get_Fournisseur')?['body/EmailQualite']`
-- CC : `[EMAIL_QUALITE_INTERNE]` ; `[EMAIL_ACHATS_INTERNE]`
+- Action dans le JSON : `Envoyer_relance_fournisseur`
+- À : `outputs('Obtenir_details_fournisseur')?['body/EmailContactQualite']`
+- CC : `EMAIL_QUALITE`
 - Sujet :
   ```
-  [ACTION REQUISE] Documents à mettre à jour — @{outputs('Get_Fournisseur')?['body/Title']}
+  Documents qualité à mettre à jour — @{outputs('Obtenir_details_fournisseur')?['body/Title']}
   ```
 - Corps : voir template `relance_fournisseur.html`
 - Inclure le tableau HTML de l'étape 3
@@ -95,7 +100,7 @@ Déclencheur : Création d'un élément dans la liste Documents
 
 1. Récupérer TypeDocument + Fournisseur + Matiere + LienFournMat du nouveau document
 2. Rechercher l'ancien document courant de même type pour la même entité :
-   Filtre : TypeDocument = [même] ET [même entité] ET EstCourant = 1 ET ID ≠ [nouveau]
+   Filtre : TypeDocument = [même] ET [même entité] ET DocumentCourant = 1 ET ID ≠ [nouveau]
 3. Si trouvé :
    → Mettre à jour l'ancien : EstCourant = Non, Statut = "Obsolète"
    → Incrémenter Version du nouveau = ancien.Version + 1

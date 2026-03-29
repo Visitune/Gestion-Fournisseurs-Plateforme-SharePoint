@@ -175,7 +175,7 @@ Ouvrir le fichier `Base_<SupplierCode>.csv` généré et compléter la colonne `
 Import-Csv ".\Base_1107.csv" | Format-Table -AutoSize | Out-Host -Paging
 ```
 
-Vérifier le fichier `Preview_Import_*.csv` généré :
+Vérifier le fichier `Base_<SupplierCode>.csv` généré :
 - [ ] Noms fournisseurs corrects
 - [ ] Codes matières corrects
 - [ ] Dates parsées correctement (pas de "null" là où une date est attendue)
