@@ -1420,59 +1420,305 @@ table.info-table tr:hover td { background: var(--overlay); }
 
   <div class="tl-content active" id="tc0">
     <div class="card">
-      <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:8px">
         <div style="width:52px;height:52px;background:var(--bleu);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;color:#fff;flex-shrink:0"><i data-lucide="settings"></i></div>
-        <div><h2 class="block-title" style="margin:0">Phase 0 — Fondations</h2><p style="font-size:14px;color:var(--text-2);margin:0">Mise en place de la structure. Dure environ 30 minutes par nouveau client.</p></div>
-      </div>
-      <div class="g2">
         <div>
-          <h3 class="block-sub">Ce qu'on fait</h3>
+          <h2 class="block-title" style="margin:0">Phase 0 — Fondations</h2>
+          <p style="font-size:14px;color:var(--text-2);margin:0">Mise en place de la structure SharePoint. Durée totale : <strong>1h à 2h</strong> pour un nouveau client.</p>
+        </div>
+      </div>
+
+      <!-- Prérequis avant de commencer -->
+      <div class="callout warn" style="margin-bottom:24px">
+        <div class="co-icon"><i data-lucide="clipboard-list" style="color:var(--warning)"></i></div>
+        <div>
+          <strong>Avant de commencer, vérifiez que vous avez :</strong>
+          <ul style="margin:6px 0 0 0;padding-left:18px;display:flex;flex-direction:column;gap:3px;font-size:13.5px">
+            <li>Un compte <strong>administrateur</strong> sur le tenant Microsoft 365 du client (ou les droits pour créer des sites SharePoint)</li>
+            <li>Le <strong>site SharePoint cible déjà créé</strong> — le script ne crée pas le site, il y installe la structure. Exemple d'URL : <code style="font-size:12px;background:#FEF3C7;padding:1px 5px;border-radius:3px">https://client.sharepoint.com/sites/GestionFournisseurs</code></li>
+            <li>Votre <strong>ordinateur personnel</strong> (pas un serveur cloud) — le script doit tourner en local</li>
+            <li>Connexion internet active</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="g2">
+        <!-- Colonne gauche : étapes détaillées -->
+        <div>
+          <h3 class="block-sub">Étape A — Préparer votre poste <span style="font-weight:400;font-size:12px;color:var(--text-3)">(à faire une seule fois)</span></h3>
           <div class="steps">
+
             <div class="step">
-              <div class="step-num" style="background:var(--bleu);font-size:13px">1</div>
+              <div class="step-num" style="background:var(--gris)">A1</div>
               <div class="step-body">
-                <h4>Enregistrer l'application Entra ID <span style="font-size:12px;font-weight:400;color:var(--text-2)">(une fois par client)</span></h4>
-                <p>⚠️ Depuis septembre 2024, une app Microsoft dédiée est obligatoire par tenant. On l'enregistre en 2 minutes avec une seule commande PowerShell — elle donne au script les droits d'accès au SharePoint du client.</p>
-                <div style="background:#F3F2F1;border-radius:4px;padding:10px 14px;font-size:12px;font-family:'Courier New',monospace;margin-top:8px;color:#323130;overflow-x:auto">Register-PnPEntraIDAppForInteractiveLogin -ApplicationName "PnP-FRS" -Tenant "client.onmicrosoft.com" -Interactive</div>
+                <h4>Installer PowerShell 7</h4>
+                <p style="color:var(--text-2);font-size:13.5px">PowerShell est l'outil en ligne de commande fourni par Microsoft qui va exécuter nos scripts. La version 7 (et non la version Windows intégrée) est obligatoire.</p>
+                <p style="font-size:13px;margin-top:6px"><strong>Comment l'installer :</strong></p>
+                <ol style="padding-left:18px;font-size:13px;color:var(--text-2);display:flex;flex-direction:column;gap:4px;margin:4px 0 8px 0">
+                  <li>Appuyez sur <kbd style="background:#F3F2F1;border:1px solid #ccc;border-radius:3px;padding:1px 5px;font-size:11px">Windows + R</kbd>, tapez <code style="font-size:12px;background:#F3F2F1;padding:1px 5px;border-radius:3px">winget install Microsoft.PowerShell</code> dans une fenêtre PowerShell classique, appuyez sur Entrée</li>
+                  <li>Attendez la fin de l'installation (2-3 minutes)</li>
+                  <li>Fermez et rouvrez PowerShell — vous devriez voir <strong>PS 7.x</strong> dans le titre de la fenêtre</li>
+                </ol>
+                <div style="background:#F3F2F1;border-radius:4px;padding:8px 14px;font-size:12px;font-family:'Courier New',monospace;color:#323130">winget install Microsoft.PowerShell</div>
+                <p style="font-size:12px;color:var(--text-3);margin-top:6px">✅ Pour vérifier : tapez <code style="font-size:11px;background:#F3F2F1;padding:1px 4px;border-radius:2px">$PSVersionTable.PSVersion</code> — la version doit afficher <strong>7.4.6</strong> ou supérieur.</p>
               </div>
             </div>
+
             <div class="step">
-              <div class="step-num" style="background:var(--bleu);font-size:13px">2</div>
+              <div class="step-num" style="background:var(--gris)">A2</div>
               <div class="step-body">
-                <h4>Lancer le script de déploiement <code style="font-size:12px;background:#F3F2F1;padding:2px 6px;border-radius:3px">Deploy-FRS.ps1</code></h4>
-                <p>Une seule commande crée automatiquement les 6 listes, toutes leurs colonnes, les vues filtrées et la bibliothèque de documents. Durée : 3 à 5 minutes. Aucun clic dans SharePoint.</p>
-                <div style="background:#F3F2F1;border-radius:4px;padding:10px 14px;font-size:12px;font-family:'Courier New',monospace;margin-top:8px;color:#323130;overflow-x:auto">./Deploy-FRS.ps1 -SiteUrl "https://client.sharepoint.com/sites/GestionFournisseurs" -ClientId "xxxxxxxx-xxxx"</div>
+                <h4>Installer le module PnP PowerShell</h4>
+                <p style="color:var(--text-2);font-size:13.5px">PnP PowerShell est une bibliothèque de commandes qui permet de piloter SharePoint depuis le terminal. C'est elle qui fait le travail concret de création des listes.</p>
+                <p style="font-size:13px;margin-top:6px"><strong>Dans PowerShell 7, copiez-collez cette commande :</strong></p>
+                <div style="background:#F3F2F1;border-radius:4px;padding:8px 14px;font-size:12px;font-family:'Courier New',monospace;color:#323130;margin-top:6px">Install-Module PnP.PowerShell -Scope CurrentUser</div>
+                <p style="font-size:12px;color:var(--text-2);margin-top:6px">Si une fenêtre vous demande de confirmer l'installation depuis la galerie Microsoft, tapez <strong>O</strong> puis Entrée. L'installation prend 1-2 minutes.</p>
               </div>
             </div>
+
+          </div>
+
+          <h3 class="block-sub" style="margin-top:24px">Étape B — Configurer l'accès au tenant client <span style="font-weight:400;font-size:12px;color:var(--text-3)">(une fois par client)</span></h3>
+          <div class="steps">
+
             <div class="step">
-              <div class="step-num" style="background:var(--bleu);font-size:13px">3</div>
+              <div class="step-num" style="background:var(--bleu)">B1</div>
               <div class="step-body">
-                <h4>Importer les 5 flux Power Automate</h4>
-                <p>Les 5 fichiers JSON sont importés via <strong>Power Automate → Importer un package</strong>. Chaque flux est ensuite configuré avec les bonnes URLs et adresses email (4 paramètres à remplacer).</p>
-                <div style="background:#F3F2F1;border-radius:4px;padding:10px 14px;font-size:12px;margin-top:8px;color:#323130">
-                  <strong>Outil alternatif — PAC CLI</strong> (Power Apps CLI) : si le client veut un ALM propre (version control des flux dans Git, déploiement multi-environnements dev → prod), utiliser <code style="font-family:'Courier New',monospace">pac solution</code> plutôt que l'import manuel. PAC CLI est l'outil standard Microsoft pour l'automatisation des déploiements Power Platform.
-                  <div style="font-family:'Courier New',monospace;margin-top:6px;font-size:11px;color:#605E5C">pac auth create --url https://client.crm.dynamics.com<br>pac solution import --path ./solution.zip</div>
+                <h4>Récupérer le nom du tenant</h4>
+                <p style="color:var(--text-2);font-size:13.5px">Le "tenant" est l'identifiant de l'organisation Microsoft 365 du client. Vous le trouvez dans l'URL de son SharePoint.</p>
+                <div style="background:#EFF6FF;border-radius:6px;padding:10px 14px;font-size:13px;margin-top:8px;border-left:3px solid var(--bleu)">
+                  <strong>Exemple :</strong> si l'URL SharePoint du client est<br>
+                  <code style="font-size:12px;font-family:'Courier New',monospace;color:#1D4ED8">https://<strong>acmefood</strong>.sharepoint.com/sites/...</code><br>
+                  alors le tenant est <code style="font-size:12px;font-family:'Courier New',monospace;background:#DBEAFE;padding:1px 5px;border-radius:3px">acmefood.onmicrosoft.com</code>
+                </div>
+                <p style="font-size:12px;color:var(--text-3);margin-top:8px">📝 Notez ce nom, vous en aurez besoin à l'étape suivante.</p>
+              </div>
+            </div>
+
+            <div class="step">
+              <div class="step-num" style="background:var(--bleu)">B2</div>
+              <div class="step-body">
+                <h4>Enregistrer l'application d'accès (Entra ID) <span style="font-size:12px;font-weight:400;color:var(--text-2)">⚠️ obligatoire depuis sept. 2024</span></h4>
+                <p style="color:var(--text-2);font-size:13.5px">Avant de pouvoir piloter SharePoint depuis un script, Microsoft impose d'enregistrer une "application" dans leur annuaire (Entra ID, anciennement Azure AD). C'est une sorte de carte d'identité pour le script. Cette étape se fait une seule fois par client.</p>
+                <p style="font-size:13px;margin-top:8px"><strong>Dans PowerShell 7, remplacez le tenant et exécutez :</strong></p>
+                <div style="background:#F3F2F1;border-radius:4px;padding:10px 14px;font-size:11.5px;font-family:'Courier New',monospace;color:#323130;margin-top:6px;overflow-x:auto">Register-PnPEntraIDAppForInteractiveLogin `<br>&nbsp;&nbsp;-ApplicationName "PnP-FRS" `<br>&nbsp;&nbsp;-SharePointDelegatePermissions "AllSites.FullControl" `<br>&nbsp;&nbsp;-Tenant "acmefood.onmicrosoft.com" `<br>&nbsp;&nbsp;-Interactive</div>
+                <div style="background:#DCFCE7;border-radius:6px;padding:10px 14px;font-size:13px;margin-top:10px;border-left:3px solid var(--vert)">
+                  <strong>Ce qui va se passer :</strong>
+                  <ol style="padding-left:16px;margin:6px 0 0 0;display:flex;flex-direction:column;gap:3px">
+                    <li>Une fenêtre de connexion Microsoft s'ouvre — connectez-vous avec un compte admin du client</li>
+                    <li>Microsoft vous demande de confirmer les autorisations — cliquez <strong>Accepter</strong></li>
+                    <li>Dans le terminal, vous voyez s'afficher un <strong>AppID</strong> (un code de 36 caractères) :<br><code style="font-size:11px;font-family:'Courier New',monospace;background:#F0FDF4;padding:2px 6px;border-radius:3px">AppId: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</code></li>
+                  </ol>
+                </div>
+                <p style="font-size:12px;color:var(--danger);margin-top:8px;font-weight:500">⚠️ Copiez et sauvegardez cet AppID dans un fichier texte. Vous en aurez besoin à l'étape suivante.</p>
+              </div>
+            </div>
+
+          </div>
+
+          <h3 class="block-sub" style="margin-top:24px">Étape C — Déployer SharePoint</h3>
+          <div class="steps">
+
+            <div class="step">
+              <div class="step-num" style="background:var(--bleu)">C1</div>
+              <div class="step-body">
+                <h4>Ouvrir le dossier du projet dans PowerShell</h4>
+                <p style="color:var(--text-2);font-size:13.5px">Le script doit être exécuté depuis le dossier où il se trouve. Dans PowerShell 7 :</p>
+                <div style="background:#F3F2F1;border-radius:4px;padding:8px 14px;font-size:12px;font-family:'Courier New',monospace;color:#323130;margin-top:6px">cd "C:\chemin\vers\PROJET SHAREPOINT FRS\scripts"</div>
+                <p style="font-size:12px;color:var(--text-2);margin-top:6px">Astuce : dans l'Explorateur Windows, naviguez dans le dossier <code style="font-size:11px;background:#F3F2F1;padding:1px 4px;border-radius:2px">scripts/</code>, puis cliquez sur la barre d'adresse, tapez <code style="font-size:11px;background:#F3F2F1;padding:1px 4px;border-radius:2px">pwsh</code> et Entrée — PowerShell 7 s'ouvre directement dans ce dossier.</p>
+              </div>
+            </div>
+
+            <div class="step">
+              <div class="step-num" style="background:var(--bleu)">C2</div>
+              <div class="step-body">
+                <h4>Lancer le script de déploiement</h4>
+                <p style="color:var(--text-2);font-size:13.5px">Remplacez l'URL et l'AppID par les vraies valeurs du client, puis exécutez :</p>
+                <div style="background:#F3F2F1;border-radius:4px;padding:10px 14px;font-size:11.5px;font-family:'Courier New',monospace;color:#323130;margin-top:6px;overflow-x:auto">./Deploy-FRS.ps1 `<br>&nbsp;&nbsp;-SiteUrl "https://acmefood.sharepoint.com/sites/GestionFournisseurs" `<br>&nbsp;&nbsp;-ClientId "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"</div>
+                <div style="background:#DCFCE7;border-radius:6px;padding:10px 14px;font-size:13px;margin-top:10px;border-left:3px solid var(--vert)">
+                  <strong>Ce que vous allez voir défiler :</strong>
+                  <div style="font-family:'Courier New',monospace;font-size:11px;color:#166534;margin-top:6px;display:flex;flex-direction:column;gap:2px">
+                    <div>🔌 Connexion à SharePoint...</div>
+                    <div>&nbsp;&nbsp;✓ Connecté à : https://acmefood.sharepoint.com/...</div>
+                    <div>📋 [1/7] Création liste Types_Documents...</div>
+                    <div>&nbsp;&nbsp;✓ Types_Documents créée + 8 types chargés</div>
+                    <div>🏢 [2/7] Création liste Fournisseurs...</div>
+                    <div>&nbsp;&nbsp;✓ Fournisseurs créée</div>
+                    <div style="color:#888">... (4 autres listes)</div>
+                    <div>📁 [7/7] Création bibliothèque Documents_Fichiers...</div>
+                    <div style="color:#16A34A;font-weight:bold">&nbsp;&nbsp;✅ Déploiement FRS terminé avec succès !</div>
+                  </div>
+                </div>
+                <p style="font-size:12px;color:var(--text-3);margin-top:8px">Durée : 3 à 5 minutes. Si une fenêtre de connexion Microsoft s'ouvre, connectez-vous avec le compte admin du client.</p>
+              </div>
+            </div>
+
+            <div class="step">
+              <div class="step-num" style="background:var(--bleu)">C3</div>
+              <div class="step-body">
+                <h4>Vérifier dans SharePoint</h4>
+                <p style="color:var(--text-2);font-size:13.5px">Ouvrez le site SharePoint dans votre navigateur. Dans le menu de gauche ("<strong>Lancement rapide</strong>"), vous devez voir apparaître :</p>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px">
+                  <div style="background:#F8FAFC;border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:12.5px"><i data-lucide="list" style="width:13px;height:13px;vertical-align:middle;color:var(--bleu)"></i> <strong>Fournisseurs</strong></div>
+                  <div style="background:#F8FAFC;border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:12.5px"><i data-lucide="list" style="width:13px;height:13px;vertical-align:middle;color:var(--bleu)"></i> <strong>Documents</strong></div>
+                  <div style="background:#F8FAFC;border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:12.5px"><i data-lucide="list" style="width:13px;height:13px;vertical-align:middle;color:var(--bleu)"></i> <strong>Types_Documents</strong></div>
+                  <div style="background:#F8FAFC;border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:12.5px"><i data-lucide="list" style="width:13px;height:13px;vertical-align:middle;color:var(--bleu)"></i> <strong>Matieres_Premieres</strong></div>
+                  <div style="background:#F8FAFC;border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:12.5px"><i data-lucide="list" style="width:13px;height:13px;vertical-align:middle;color:var(--bleu)"></i> <strong>Liens_Fourn_Mat</strong></div>
+                  <div style="background:#F8FAFC;border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:12.5px"><i data-lucide="folder" style="width:13px;height:13px;vertical-align:middle;color:var(--bleu)"></i> <strong>Documents_Fichiers</strong></div>
+                </div>
+                <p style="font-size:12px;color:var(--text-3);margin-top:8px">La liste <strong>Analyse_Fraude</strong> n'apparaît pas dans le menu — c'est normal, elle est confidentielle. Elle existe bien dans Contenu du site.</p>
+              </div>
+            </div>
+
+          </div>
+
+          <h3 class="block-sub" style="margin-top:24px">Étape D — Configurer les flux Power Automate</h3>
+          <div class="steps">
+
+            <div class="step">
+              <div class="step-num" style="background:var(--violet)">D1</div>
+              <div class="step-body">
+                <h4>Récupérer les IDs des listes SharePoint</h4>
+                <p style="color:var(--text-2);font-size:13.5px">Chaque liste SharePoint a un identifiant unique (GUID) que vous devrez coller dans les flux. Pour le trouver :</p>
+                <ol style="padding-left:18px;font-size:13px;color:var(--text-2);display:flex;flex-direction:column;gap:4px;margin:6px 0">
+                  <li>Ouvrez la liste dans SharePoint (ex: <strong>Documents</strong>)</li>
+                  <li>Cliquez sur l'engrenage ⚙️ → <strong>Paramètres de la liste</strong></li>
+                  <li>Dans la barre d'adresse du navigateur, cherchez le paramètre <code style="font-size:11px;background:#F3F2F1;padding:1px 4px;border-radius:2px">List=</code></li>
+                  <li>Copiez la valeur entre les accolades : <code style="font-size:11px;font-family:'Courier New',monospace;background:#EDE9FE;padding:1px 5px;border-radius:3px">{xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}</code></li>
+                </ol>
+                <p style="font-size:12px;color:var(--text-2);margin-top:4px">Répétez pour les listes : <strong>Documents</strong>, <strong>Fournisseurs</strong>, <strong>Types_Documents</strong>, <strong>Matieres_Premieres</strong>.</p>
+              </div>
+            </div>
+
+            <div class="step">
+              <div class="step-num" style="background:var(--violet)">D2</div>
+              <div class="step-body">
+                <h4>Créer le formulaire Microsoft Forms</h4>
+                <p style="color:var(--text-2);font-size:13.5px">Le formulaire sert de portail de dépôt pour les fournisseurs (Flux 5 uniquement). À créer une seule fois sur <a href="https://forms.microsoft.com" target="_blank" style="color:var(--bleu)">forms.microsoft.com</a> avec votre compte Microsoft 365.</p>
+                <div style="background:#F8FAFC;border:1px solid var(--border);border-radius:6px;padding:10px 14px;font-size:13px;margin-top:8px">
+                  <strong>Créez un nouveau formulaire avec ces 5 questions dans cet ordre :</strong>
+                  <ol style="padding-left:16px;margin:6px 0 0 0;display:flex;flex-direction:column;gap:3px;font-size:12.5px">
+                    <li><strong>Code fournisseur</strong> — Texte (obligatoire)</li>
+                    <li><strong>Type de document</strong> — Liste déroulante (obligatoire) — options = vos types de documents</li>
+                    <li><strong>Matière première concernée</strong> — Texte (optionnel)</li>
+                    <li><strong>Date d'émission du document</strong> — Date (obligatoire)</li>
+                    <li><strong>Fichier à déposer</strong> — Téléchargement de fichier (obligatoire)</li>
+                  </ol>
+                </div>
+                <p style="font-size:12px;color:var(--text-2);margin-top:8px">Une fois créé, notez l'<strong>ID du formulaire</strong> visible dans l'URL : <code style="font-size:11px;font-family:'Courier New',monospace;background:#EDE9FE;padding:1px 5px;border-radius:3px">forms.microsoft.com/r/<strong>VOTRE_FORM_ID</strong></code></p>
+              </div>
+            </div>
+
+            <div class="step">
+              <div class="step-num" style="background:var(--violet)">D3</div>
+              <div class="step-body">
+                <h4>Importer les 5 flux dans Power Automate</h4>
+                <p style="color:var(--text-2);font-size:13.5px">Rendez-vous sur <a href="https://make.powerautomate.com" target="_blank" style="color:var(--bleu)">make.powerautomate.com</a> avec le compte du client. Pour chacun des 5 fichiers JSON :</p>
+                <ol style="padding-left:18px;font-size:13px;color:var(--text-2);display:flex;flex-direction:column;gap:4px;margin:6px 0">
+                  <li>Cliquez <strong>Mes flux</strong> → <strong>Nouveau flux</strong> → choisissez le type correspondant (planifié pour Flux 1, automatisé pour les autres)</li>
+                  <li>Dans l'éditeur, cliquez sur le bouton <strong>…</strong> (trois points) en haut à droite → <strong>Modifier en JSON (code)</strong></li>
+                  <li>Sélectionnez tout le contenu <kbd style="background:#F3F2F1;border:1px solid #ccc;border-radius:3px;padding:1px 5px;font-size:11px">Ctrl+A</kbd>, supprimez-le, puis collez le contenu du fichier JSON correspondant</li>
+                  <li>Cliquez <strong>Enregistrer</strong></li>
+                </ol>
+                <div style="display:flex;flex-direction:column;gap:4px;margin-top:8px">
+                  <div style="background:#F8FAFC;border:1px solid var(--border);border-radius:6px;padding:7px 12px;font-size:12.5px;display:flex;align-items:center;gap:8px"><span style="background:var(--bleu);color:#fff;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:600">1</span> <code style="font-size:11.5px">flow_calcul_statuts.json</code> — <span style="color:var(--text-2)">Calcul des statuts · tourne chaque matin à 8h</span></div>
+                  <div style="background:#F8FAFC;border:1px solid var(--border);border-radius:6px;padding:7px 12px;font-size:12.5px;display:flex;align-items:center;gap:8px"><span style="background:var(--bleu);color:#fff;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:600">2</span> <code style="font-size:11.5px">flow_alertes_expiration.json</code> — <span style="color:var(--text-2)">Emails d'alerte J-90 / J-30 / J-7</span></div>
+                  <div style="background:#F8FAFC;border:1px solid var(--border);border-radius:6px;padding:7px 12px;font-size:12.5px;display:flex;align-items:center;gap:8px"><span style="background:var(--bleu);color:#fff;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:600">3</span> <code style="font-size:11.5px">flow_relance_fournisseur.json</code> — <span style="color:var(--text-2)">Relance manuelle depuis une fiche fournisseur</span></div>
+                  <div style="background:#F8FAFC;border:1px solid var(--border);border-radius:6px;padding:7px 12px;font-size:12.5px;display:flex;align-items:center;gap:8px"><span style="background:var(--bleu);color:#fff;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:600">4</span> <code style="font-size:11.5px">flow_nouveau_document.json</code> — <span style="color:var(--text-2)">Archivage + versioning automatique</span></div>
+                  <div style="background:#F8FAFC;border:1px solid var(--border);border-radius:6px;padding:7px 12px;font-size:12.5px;display:flex;align-items:center;gap:8px"><span style="background:var(--violet);color:#fff;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:600">5</span> <code style="font-size:11.5px">flow_portail_fournisseur.json</code> — <span style="color:var(--text-2)">Portail de dépôt via Microsoft Forms</span></div>
                 </div>
               </div>
             </div>
+
+            <div class="step">
+              <div class="step-num" style="background:var(--violet)">D4</div>
+              <div class="step-body">
+                <h4>Configurer les paramètres dans chaque flux</h4>
+                <p style="color:var(--text-2);font-size:13.5px">Dans chaque flux importé, recherchez les mots en majuscules et remplacez-les par les vraies valeurs. Utilisez <kbd style="background:#F3F2F1;border:1px solid #ccc;border-radius:3px;padding:1px 5px;font-size:11px">Ctrl+F</kbd> dans l'éditeur JSON pour les trouver rapidement.</p>
+                <table style="width:100%;border-collapse:collapse;font-size:12.5px;margin-top:8px">
+                  <thead><tr style="background:#F1F5F9"><th style="padding:6px 10px;text-align:left;border:1px solid var(--border);font-weight:600">Paramètre à remplacer</th><th style="padding:6px 10px;text-align:left;border:1px solid var(--border);font-weight:600">Valeur</th><th style="padding:6px 10px;text-align:left;border:1px solid var(--border);font-weight:600">Flux</th></tr></thead>
+                  <tbody>
+                    <tr><td style="padding:5px 10px;border:1px solid var(--border)"><code style="font-size:11px">VOTRE_SITE_URL</code></td><td style="padding:5px 10px;border:1px solid var(--border);color:var(--text-2)">URL du site SharePoint</td><td style="padding:5px 10px;border:1px solid var(--border)">Tous</td></tr>
+                    <tr style="background:#FAFAFA"><td style="padding:5px 10px;border:1px solid var(--border)"><code style="font-size:11px">LIST_GUID_DOCUMENTS</code></td><td style="padding:5px 10px;border:1px solid var(--border);color:var(--text-2)">ID de la liste Documents</td><td style="padding:5px 10px;border:1px solid var(--border)">Tous</td></tr>
+                    <tr><td style="padding:5px 10px;border:1px solid var(--border)"><code style="font-size:11px">EMAIL_QUALITE</code></td><td style="padding:5px 10px;border:1px solid var(--border);color:var(--text-2)">Email équipe Qualité</td><td style="padding:5px 10px;border:1px solid var(--border)">2, 3, 5</td></tr>
+                    <tr style="background:#FAFAFA"><td style="padding:5px 10px;border:1px solid var(--border)"><code style="font-size:11px">EMAIL_ACHATS</code></td><td style="padding:5px 10px;border:1px solid var(--border);color:var(--text-2)">Email équipe Achats</td><td style="padding:5px 10px;border:1px solid var(--border)">2, 3</td></tr>
+                    <tr><td style="padding:5px 10px;border:1px solid var(--border)"><code style="font-size:11px">LIST_GUID_FOURNISSEURS</code></td><td style="padding:5px 10px;border:1px solid var(--border);color:var(--text-2)">ID de la liste Fournisseurs</td><td style="padding:5px 10px;border:1px solid var(--border)">3, 5</td></tr>
+                    <tr style="background:#FAFAFA"><td style="padding:5px 10px;border:1px solid var(--border)"><code style="font-size:11px">LIST_GUID_TYPES_DOCUMENTS</code></td><td style="padding:5px 10px;border:1px solid var(--border);color:var(--text-2)">ID de la liste Types_Documents</td><td style="padding:5px 10px;border:1px solid var(--border)">5</td></tr>
+                    <tr><td style="padding:5px 10px;border:1px solid var(--border)"><code style="font-size:11px">LIST_GUID_MATIERES_PREMIERES</code></td><td style="padding:5px 10px;border:1px solid var(--border);color:var(--text-2)">ID de la liste Matieres_Premieres</td><td style="padding:5px 10px;border:1px solid var(--border)">5</td></tr>
+                    <tr style="background:#FAFAFA"><td style="padding:5px 10px;border:1px solid var(--border)"><code style="font-size:11px">VOTRE_FORM_ID</code></td><td style="padding:5px 10px;border:1px solid var(--border);color:var(--text-2)">ID du formulaire Microsoft Forms</td><td style="padding:5px 10px;border:1px solid var(--border)">5 uniquement</td></tr>
+                  </tbody>
+                </table>
+                <p style="font-size:12px;color:var(--text-3);margin-top:8px">Après chaque modification, cliquez <strong>Enregistrer</strong> puis <strong>Activer le flux</strong> (bouton en haut).</p>
+              </div>
+            </div>
+
           </div>
         </div>
+
+        <!-- Colonne droite : récap, checklist, timeline -->
         <div>
-          <div class="band band-green"><h4>✅ Résultat de cette phase</h4>
-          <ul>
-            <li>6 listes SharePoint créées et configurées</li>
-            <li>8 types de documents pré-chargés</li>
-            <li>Bibliothèque de documents avec versioning</li>
-            <li>3 vues filtrées (Expirés, Bientôt, En attente)</li>
-            <li>5 flux Power Automate actifs</li>
-          </ul></div>
+          <div class="band band-green">
+            <h4>✅ Ce qui est créé dans SharePoint</h4>
+            <ul style="display:flex;flex-direction:column;gap:4px">
+              <li><strong>Fournisseurs</strong> — fiche par fournisseur (nom, code, statut, score)</li>
+              <li><strong>Types_Documents</strong> — catalogue des documents requis avec durées de validité</li>
+              <li><strong>Matieres_Premieres</strong> — catalogue des matières et ingrédients</li>
+              <li><strong>Liens_Fourn_Mat</strong> — associations fournisseur × matière</li>
+              <li><strong>Documents</strong> — registre central (statuts, dates, conformité)</li>
+              <li><strong>Analyse_Fraude</strong> — évaluation risque (accès restreint)</li>
+              <li><strong>Documents_Fichiers</strong> — bibliothèque des fichiers PDF/Word</li>
+            </ul>
+          </div>
+
+          <div class="band" style="margin-top:12px;background:var(--violet-l);border-left:3px solid var(--violet)">
+            <h4 style="color:var(--violet)">⚡ Ce que font les 5 flux</h4>
+            <ul style="display:flex;flex-direction:column;gap:4px;font-size:13px">
+              <li><strong>Flux 1</strong> — Recalcule chaque matin les statuts (Valide / Expire bientôt / Expiré)</li>
+              <li><strong>Flux 2</strong> — Envoie les alertes email à J-90, J-30 et J-7 avant expiration</li>
+              <li><strong>Flux 3</strong> — Relance manuelle d'un fournisseur depuis sa fiche SharePoint</li>
+              <li><strong>Flux 4</strong> — Archive l'ancienne version quand un nouveau document arrive</li>
+              <li><strong>Flux 5</strong> — Traite les dépôts fournisseurs via le formulaire Microsoft Forms</li>
+            </ul>
+          </div>
+
           <div class="callout tip" style="margin-top:12px">
             <span class="co-icon">⏱️</span>
-            <p>Durée estimée : <strong>1h à 2h</strong> pour déployer un nouveau client (enregistrement app + script + import flows + configuration emails).</p>
+            <div>
+              <strong>Temps par étape</strong>
+              <ul style="margin:4px 0 0 0;padding-left:16px;font-size:13px;display:flex;flex-direction:column;gap:2px">
+                <li>Étape A (1 seule fois) : 10-15 min</li>
+                <li>Étape B (par client) : 10 min</li>
+                <li>Étape C — script : 5-10 min</li>
+                <li>Étape D — 5 flux : 30-45 min</li>
+              </ul>
+            </div>
           </div>
+
+          <div class="callout" style="margin-top:12px;background:var(--success-l);border-left:3px solid var(--success)">
+            <span class="co-icon">☑️</span>
+            <div>
+              <strong>Checklist de fin de Phase 0</strong>
+              <ul style="margin:4px 0 0 0;padding-left:16px;font-size:13px;display:flex;flex-direction:column;gap:2px;list-style:none">
+                <li>☐ 7 listes/bibliothèque visibles dans SharePoint</li>
+                <li>☐ Liste Types_Documents contient 8 lignes</li>
+                <li>☐ 5 flux actifs dans Power Automate (statut = Activé)</li>
+                <li>☐ Flux 1 testé : statuts mis à jour</li>
+                <li>☐ Flux 5 testé : dépôt via le formulaire fonctionne</li>
+                <li>☐ Permissions Analyse_Fraude configurées manuellement</li>
+              </ul>
+            </div>
+          </div>
+
           <div class="callout warn" style="margin-top:12px">
             <div class="co-icon"><i data-lucide="alert-circle" style="color:var(--warning)"></i></div>
-            <p><strong>Prérequis techniques :</strong> PowerShell <strong>7.4.6+</strong> (pas 7.4.0 à 7.4.5 — incompatible PnP v3) et le module PnP.PowerShell v3 installés sur le poste du consultant. Azure Automation bloque sur cette version : exécuter en local uniquement. Le site SharePoint cible doit déjà exister.</p>
+            <div>
+              <strong>Points d'attention</strong>
+              <ul style="margin:4px 0 0 0;padding-left:16px;font-size:13px;display:flex;flex-direction:column;gap:3px">
+                <li>PowerShell <strong>7.4.6+</strong> obligatoire (pas 7.4.0–7.4.5, incompatibles PnP v3)</li>
+                <li>Exécuter le script en <strong>local</strong>, pas depuis Azure ou un serveur</li>
+                <li>Le site SharePoint cible <strong>doit déjà exister</strong> avant de lancer le script</li>
+                <li>Les connexions Power Automate <strong>expirent après 90 jours d'inactivité</strong> — re-connecter manuellement si un flux ne s'exécute plus</li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
@@ -3218,6 +3464,82 @@ table.info-table tr:hover td { background: var(--overlay); }
       <div class="fc-desc">Script PnP PowerShell v3 — crée les 6 listes + bibliothèque, colonnes, vues filtrées et 8 types de documents par défaut en une seule exécution.</div>
       <span class="fc-tag" style="background:var(--bleu-l);color:var(--bleu)">Phase 0 · Requis PS 7.4.6+</span>
     </a>
+  </div>
+  <!-- ETAPE PAR ETAPE PHASE 0 -->
+  <div class="card" style="border:2px solid #0288D1;margin-bottom:30px">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+      <div style="font-size:28px">🚀</div>
+      <div>
+        <div style="font-weight:900;font-size:18px;color:#0288D1">Phase 0 — Fondations</div>
+        <div style="font-size:14px;color:var(--text-2)">Mise en place de la structure. Dure environ 30 minutes par nouveau client.</div>
+      </div>
+      <span style="background:var(--bleu-l);color:var(--bleu);padding:4px 12px;border-radius:8px;font-size:13px;font-weight:700;margin-left:auto">Prérequis M365 !</span>
+    </div>
+
+    <!-- ÉTAPE 1 -->
+    <div style="border:1.5px solid #81D4FA;border-radius:14px;overflow:hidden;margin-bottom:16px">
+      <div style="background:#0288D1;color:#fff;padding:12px 20px;font-weight:800;font-size:15px;display:flex;align-items:center;gap:10px">
+        <span style="background:rgba(255,255,255,.25);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:14px">1</span>
+        Créer l'espace client sur Microsoft 365
+      </div>
+      <div style="padding:18px 20px;background:#E1F5FE">
+        <p style="font-size:15px;margin-bottom:10px">Avant de lancer quoi que ce soit, il faut simplement <strong>créer un nouveau site SharePoint</strong> vierge pour le client (modèle "Site d'équipe" régulier).</p>
+        <div style="display:flex;gap:10px;align-items:center;background:#fff;padding:12px 16px;border-radius:8px;font-size:13px;border:1px solid #B3E5FC">
+          <span style="font-size:20px">🔗</span>
+          <span>L'URL de ce site sera essentielle pour la suite. Exemple : <strong style="color:#0288D1">https://votre-tenant.sharepoint.com/sites/GestionFournisseurs</strong></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ÉTAPE 2 -->
+    <div style="border:1.5px solid #81D4FA;border-radius:14px;overflow:hidden;margin-bottom:16px">
+      <div style="background:#0288D1;color:#fff;padding:12px 20px;font-weight:800;font-size:15px;display:flex;align-items:center;gap:10px">
+        <span style="background:rgba(255,255,255,.25);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:14px">2</span>
+        Générer une "clé secrète" (Application Entra ID)
+      </div>
+      <div style="padding:18px 20px;background:#E1F5FE">
+        <p style="font-size:15px;margin-bottom:10px">Pour que notre outil puisse créer l'architecture tout seul, il lui faut une permission spéciale de Microsoft. C'est ce qu'on appelle "Enregistrer une application Entra ID". Ne vous inquiétez pas, il y a un petit bout de code automatique pour ça (à ne lancer <strong>qu'une seule fois</strong> par compte Microsoft).</p>
+        <div class="callout tip" style="margin-top:10px">
+          <div class="co-icon"><i data-lucide="lightbulb" style="color:var(--vert)"></i></div>
+          <p><strong>En pratique :</strong> Cette étape vous donnera un grand code chiffré appelé <strong>"ID de Client" (Client ID)</strong>. Notez-le bien, c'est la clé magique pour l'étape suivante !</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ÉTAPE 3 -->
+    <div style="border:1.5px solid #81D4FA;border-radius:14px;overflow:hidden;margin-bottom:16px">
+      <div style="background:#0288D1;color:#fff;padding:12px 20px;font-weight:800;font-size:15px;display:flex;align-items:center;gap:10px">
+        <span style="background:rgba(255,255,255,.25);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:14px">3</span>
+        La magie opère : Le script "Deploy-FRS"
+      </div>
+      <div style="padding:18px 20px;background:#E1F5FE">
+        <p style="font-size:15px;margin-bottom:14px">C'est le moment satisfaisant. Vous ouvrez PowerShell, vous lancez le fichier <strong>Deploy-FRS.ps1</strong> en lui donnant l'URL de l'étape 1 et la clé secrète de l'étape 2. Le script prend le contrôle :</p>
+        <ul style="font-size:14px;margin-left:20px;margin-bottom:10px;color:#0277BD;line-height:1.6">
+          <li><strong>Création de 6 listes</strong> SharePoint (Fournisseurs, Documents, Matières...)</li>
+          <li><strong>Création d'une bibliothèque</strong> de stockage pour les futurs fichiers PDF/Excel</li>
+          <li>Configuration de toutes les colonnes expertes (Statuts avec puces de couleur, formules de retard...)</li>
+          <li>Aucun clic manuel requis. Durée : environ <strong>3 minutes</strong>.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ÉTAPE 4 -->
+    <div style="border:1.5px solid #81D4FA;border-radius:14px;overflow:hidden;margin-bottom:16px">
+      <div style="background:#0288D1;color:#fff;padding:12px 20px;font-weight:800;font-size:15px;display:flex;align-items:center;gap:10px">
+        <span style="background:rgba(255,255,255,.25);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:14px">4</span>
+        Brancher le "cerveau" automatique (Flux Power Automate)
+      </div>
+      <div style="padding:18px 20px;background:#E1F5FE">
+        <p style="font-size:15px;margin-bottom:14px">L'infrastructure est prête, mais elle est encore "endormie". Pour qu'elle s'auto-gère, on va importer <strong>4 petits fichiers</strong> dans l'outil Power Automate (qui est déjà compris dans la licence client).</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+          <div style="background:#fff;border-radius:8px;padding:10px 14px;font-size:13px;border:1.5px solid #81D4FA"><strong style="color:#0288D1">Flux 1 : Calcul quotidien</strong><br>Vérifie chaque nuit qui est périmé.</div>
+          <div style="background:#fff;border-radius:8px;padding:10px 14px;font-size:13px;border:1.5px solid #81D4FA"><strong style="color:#0288D1">Flux 2 : Alertes internes</strong><br>Envoie un email interne (J-90 / J-30).</div>
+          <div style="background:#fff;border-radius:8px;padding:10px 14px;font-size:13px;border:1.5px solid #81D4FA"><strong style="color:#0288D1">Flux 3 : Relance externe</strong><br>Bouton pour envoyer la demande au fournisseur.</div>
+          <div style="background:#fff;border-radius:8px;padding:10px 14px;font-size:13px;border:1.5px solid #81D4FA"><strong style="color:#0288D1">Flux 4 : Connexion Portail</strong><br>Connecte le formulaire Microsoft Forms à SharePoint.</div>
+        </div>
+        <p style="font-size:14px;margin-top:14px">À l'importation de chaque flux, il sera juste demandé de <strong>renseigner l'URL SharePoint</strong> créée à l'étape 1 et les adresses emails des personnes à alerter. Et voilà, <strong>le client est 100% fonctionnel !</strong> 🎉</p>
+      </div>
+    </div>
   </div>
 
   <h3 class="block-sub" style="margin-bottom:6px;text-transform:uppercase;font-size:12px;letter-spacing:.08em">⚡ Script PowerShell — Outil optionnel de migration</h3>
