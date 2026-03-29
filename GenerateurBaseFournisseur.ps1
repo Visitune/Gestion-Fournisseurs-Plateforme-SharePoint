@@ -1,7 +1,7 @@
 param(
     [string]$SupplierRoot = ".\Fuseau 2081",
     [string]$OutputDir = ".\",
-    [string]$SharePointBase = "https://bahierfr.sharepoint.com/sites/NonConformiteQualite/Docs_Fournisseurs",
+    [string]$SharePointBase = "https://bahierfr.sharepoint.com/sites/NonConformiteQualite/Documents_Fichiers",
     [string]$SupplierCode = "2081",
     [string]$MasterFourn = ".\Fournisseurs.csv",
     [string]$MasterMat = ".\Matieres_Premieres.csv"
@@ -66,7 +66,7 @@ function Get-DocType {
     if ($name -match "PROTOCOLE|PROTOCOL|SECURITE") { return "PROTOCOLE" }
     if ($name -match "CERTIFICAT|CERTIF|IFS|FSSC|ISO.9001|HACCP|BIO" -or $folder -match "CERTIFICAT") { return "CERTIFICAT" }
     if ($folder -match "\\ANALYSE" -or $name -match "ANALYSE|AR-\d|R2[0-9]{7}") { return "ANALYSE" }
-    if ($name -match "QUESTIONNAIRE|OGM|ALLERGEN|COMPOSITION|EN\.ACHAT\.(006|007|010|011|013|017)|ETHIQUE|MALVEILLANCE|CONTAMINANT|PLAN.DE.CONTROLE") { return "QUESTIONNAIRE" }
+    if ($name -match "QUESTIONNAIRE|OGM|ALLERGEN|COMPOSITION|EN\.ACHAT\.(006|007|010|011|013|017)|ETHIQUE|MALVEILLANCE|CONTAMINANT|PLAN.DE.CONTROLE") { return "Questionnaire fournisseur" }
     if ($name -match "^\d{5}|FICHE.TECHNIQUE|FT[\.\-_ ]|\.FT\.") { return "FT" }
     return "AUTRE"
 }
@@ -163,6 +163,27 @@ Sort-Object FullName
 
 Write-Host ("   -> " + $AllFiles.Count + " fichiers a traiter") -ForegroundColor Green
 
+# ─── DURÉES DE VALIDITÉ PAR TYPE (source : Deploy-FRS.ps1 $typesDocs) ─────────
+$DureeValiditeJours = @{
+    "Certificat IFS/BRC/FSSC"   = 365
+    "Fiche Technique"           = 730
+    "Cahier des Charges"        = 1095
+    "Questionnaire fournisseur" = 365
+    "Déclaration allergènes"    = 730
+    "Déclaration OGM/Dioxine"   = 365
+    "Analyse laboratoire"       = 365
+    "Déclaration alimentarité"  = 1825
+    # Types internes du générateur
+    "CERTIFICAT"                = 365
+    "FT"                        = 730
+    "CDC"                       = 1095
+    "ANALYSE"                   = 365
+    "COURRIER"                  = 365
+    "GESTION_CRISE"             = 365
+    "PROTOCOLE"                 = 365
+    "AUTRE"                     = 365
+}
+
 # ─── CLASSIFICATION ──────────────────────────────────────────────────────────
 Write-Host "[5/6] Extraction, renommage et copie en cours..." -ForegroundColor Yellow
 $records = [System.Collections.Generic.List[PSCustomObject]]::new()
@@ -200,7 +221,8 @@ foreach ($file in $AllFiles) {
     $annee = ""; $datVal = ""; $statut = "En attente"
     if ($null -ne $emDate) {
         $annee = $emDate.Year.ToString()
-        $expiry = $emDate.AddYears(3)
+        $dureeJours = if ($DureeValiditeJours.ContainsKey($docType)) { $DureeValiditeJours[$docType] } else { 1095 }
+        $expiry = $emDate.AddDays($dureeJours)
         $datVal = $expiry.ToString("dd/MM/yyyy")
         $statut = if ($expiry -lt $today) { "Expire" } else { "Valide" }
     }
@@ -236,7 +258,7 @@ foreach ($file in $AllFiles) {
         Annee_Emission    = $annee
         Date_Validite     = $datVal
         Statut            = $statut
-        Chemin_SharePoint = Quote-CSV ("/Docs_Fournisseurs/" + $SupplierCode + "/" + $docType + "/")
+        Chemin_SharePoint = Quote-CSV ("/Documents_Fichiers/" + $SupplierCode + "/" + $docType + "/")
         Nom_Fichier       = Quote-CSV (Clean-Field $newFilename -MaxLen 255)
         URL_SharePoint    = Quote-CSV (Clean-Field $spURL -MaxLen 500)
     }

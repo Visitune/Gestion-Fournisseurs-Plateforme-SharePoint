@@ -18,7 +18,7 @@ Se connecter aux listes SharePoint suivantes via **Obtenir des données → Shar
 |---|---|
 | `Fournisseurs` | Liste Fournisseurs |
 | `Matieres` | Liste Matieres_Premieres |
-| `Liens` | Liste Liens_Fournisseur_Matiere |
+| `Liens` | Liste Liens_Fourn_Mat |
 | `Documents` | Liste Documents |
 | `Types_Documents` | Liste Types_Documents |
 | `Analyse_Fraude` | Liste Analyse_Fraude |

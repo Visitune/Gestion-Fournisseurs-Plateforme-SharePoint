@@ -72,6 +72,8 @@
             "dataset": "VOTRE_SITE_URL",
             "table": "LIST_GUID_DOCUMENTS",
             "$filter": "FournisseurId eq @{triggerBody()?['ID']} and DocumentCourant eq 1 and (Statut eq 'Expiré' or Statut eq 'Expire bientôt' or Statut eq 'Manquant')",
+            "$expand": "TypeDocument,MatierePremiere",
+            "$select": "ID,Title,Statut,DateExpiration,TypeDocument/Title,TypeDocument/DureeValidite,MatierePremiere/Title",
             "$orderby": "Statut asc",
             "$top": 100
           },

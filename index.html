@@ -3180,18 +3180,18 @@ table.info-table tr:hover td { background: var(--overlay); }
       <div class="fc-desc">Guide technique de la prestation de migration — audit, déploiement...</div>
       <span class="fc-tag" style="background:var(--orange-l);color:var(--orange)">Prestation</span>
     </a>
-    <a class="file-card" href="docs/guide_json_formatting.md">
+    <div class="file-card" style="opacity:0.5;cursor:not-allowed;">
       <div class="fc-icon"><i data-lucide="layout-dashboard"></i></div>
       <div class="fc-name">guide_json_formatting.md</div>
       <div class="fc-desc">Formules de formatage JSON SharePoint — badges colorés, barres de progression, icônes conditionnelles. Phase 4.</div>
-      <span class="fc-tag" style="background:var(--vert-l);color:var(--vert)">Phase 4</span>
-    </a>
-    <a class="file-card" href="docs/guide_excel_online.md">
+      <span class="fc-tag" style="background:var(--vert-l);color:var(--vert)">Phase 4 — À venir</span>
+    </div>
+    <div class="file-card" style="opacity:0.5;cursor:not-allowed;">
       <div class="fc-icon"><i data-lucide="table-2"></i></div>
       <div class="fc-name">guide_excel_online.md</div>
       <div class="fc-desc">Guide Power Query + Excel Online connecté aux listes SharePoint — tableaux croisés, graphiques, rapport de conformité. Phase 5.</div>
-      <span class="fc-tag" style="background:var(--bleu-l);color:var(--bleu)">Phase 5</span>
-    </a>
+      <span class="fc-tag" style="background:var(--bleu-l);color:var(--bleu)">Phase 5 — À venir</span>
+    </div>
   </div>
 
   <h3 class="block-sub" style="margin-bottom:14px;text-transform:uppercase;font-size:12px;letter-spacing:.08em">⚙️ Configuration client</h3>
@@ -3587,7 +3587,7 @@ table.info-table tr:hover td { background: var(--overlay); }
   <h3 class="block-sub" style="margin-bottom:14px;text-transform:uppercase;font-size:12px;letter-spacing:.08em">🔄 Flux Power Automate (JSON importables)</h3>
   <div class="callout tip" style="margin-bottom:12px">
     <div class="co-icon"><i data-lucide="download"></i></div>
-    <p>Ces 5 fichiers <strong>JSON sont directement importables dans Power Automate</strong> via "Importer un package". Après import, remplacer les 4 paramètres en majuscules (<code>VOTRE_SITE_URL</code>, <code>LIST_GUID_DOCUMENTS</code>, <code>EMAIL_QUALITE</code>…) par les valeurs réelles du client.</p>
+    <p>Ces 5 fichiers <strong>JSON sont directement importables dans Power Automate</strong> via "Importer un package". Après import, remplacer les paramètres en majuscules par les valeurs réelles du client : <code>VOTRE_SITE_URL</code>, <code>LIST_GUID_DOCUMENTS</code>, <code>LIST_GUID_FOURNISSEURS</code>, <code>LIST_GUID_TYPES_DOCUMENTS</code>, <code>EMAIL_QUALITE</code>, <code>EMAIL_ACHATS</code>, <code>VOTRE_FORM_ID</code> (Flux 5). Les IDs de listes sont visibles dans l'URL des paramètres de chaque liste SharePoint.</p>
   </div>
   <div class="callout warn" style="margin-bottom:16px">
     <div class="co-icon"><i data-lucide="alert-triangle"></i></div>

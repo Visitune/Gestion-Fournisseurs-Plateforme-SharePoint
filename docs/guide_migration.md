@@ -6,8 +6,8 @@ La migration se déroule en 4 étapes :
 
 ```
 ÉTAPE 1 : Audit & préparation
-ÉTAPE 2 : Déploiement SharePoint (script New-FRSClient.ps1)
-ÉTAPE 3 : Migration des documents physiques (script Invoke-DocumentMigration.ps1)
+ÉTAPE 2 : Déploiement SharePoint (script Deploy-FRS.ps1)
+ÉTAPE 3 : Migration des documents physiques (script GenerateurBaseFournisseur.ps1)
 ÉTAPE 4 : Import des données Excel (script Import-ExcelData.ps1)
 ```
 
@@ -92,13 +92,10 @@ Get-Module PnP.PowerShell -ListAvailable | Select-Object Name, Version
 ### Exécuter le provisioning
 
 ```powershell
-cd "C:\...\PROJET SHAREPOINT FRS\scripts\provisioning"
-
-# Test (ne modifie rien)
-.\New-FRSClient.ps1 -ConfigPath "..\..\config\CLIENT_NOM.json" -WhatIf
+cd "C:\...\PROJET SHAREPOINT FRS\scripts"
 
 # Exécution réelle
-.\New-FRSClient.ps1 -ConfigPath "..\..\config\CLIENT_NOM.json"
+.\Deploy-FRS.ps1 -SiteUrl "https://TENANT.sharepoint.com/sites/NOM_SITE" -ClientId "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 ```
 
 ### Vérification post-déploiement
@@ -107,10 +104,10 @@ Après le script, vérifier dans SharePoint :
 - [ ] Liste `Types_Documents` créée et peuplée avec les types configurés
 - [ ] Liste `Fournisseurs` créée avec toutes les colonnes
 - [ ] Liste `Matieres_Premieres` créée
-- [ ] Liste `Liens_Fournisseur_Matiere` créée avec les lookups
+- [ ] Liste `Liens_Fourn_Mat` créée avec les lookups
 - [ ] Liste `Documents` créée avec les lookups
 - [ ] Liste `Analyse_Fraude` créée
-- [ ] Bibliothèque `Docs_Fournisseurs` créée
+- [ ] Bibliothèque `Documents_Fichiers` créée
 
 ---
 
@@ -118,29 +115,22 @@ Après le script, vérifier dans SharePoint :
 
 ### Principe
 
-Le script `Invoke-DocumentMigration.ps1` traite un fournisseur à la fois.
+Le script `GenerateurBaseFournisseur.ps1` traite un fournisseur à la fois.
 Répéter l'opération pour chaque fournisseur.
 
 ### Exécution par fournisseur
 
 ```powershell
-cd "C:\...\PROJET SHAREPOINT FRS\scripts\migration"
-
-# Se connecter à SharePoint (une fois pour la session)
-Connect-PnPOnline -Url "https://TENANT.sharepoint.com/sites/SITE" -Interactive
-
-# Test (sans upload)
-.\Invoke-DocumentMigration.ps1 `
-    -SourceFolder "C:\Serveur\Fournisseurs\NACTIS" `
-    -SupplierCode "1107_NACTIS" `
-    -ConfigPath "..\..\config\CLIENT_NOM.json" `
-    -WhatIf
+cd "C:\...\PROJET SHAREPOINT FRS"
 
 # Migration réelle
-.\Invoke-DocumentMigration.ps1 `
-    -SourceFolder "C:\Serveur\Fournisseurs\NACTIS" `
-    -SupplierCode "1107_NACTIS" `
-    -ConfigPath "..\..\config\CLIENT_NOM.json"
+.\GenerateurBaseFournisseur.ps1 `
+    -SupplierRoot "C:\Serveur\Fournisseurs\NACTIS" `
+    -SupplierCode "1107" `
+    -MasterFourn ".\Fournisseurs.csv" `
+    -MasterMat ".\Matieres_Premieres.csv" `
+    -SharePointBase "https://TENANT.sharepoint.com/sites/NOM_SITE/Documents_Fichiers" `
+    -OutputDir ".\"
 ```
 
 ### Résultats générés
@@ -252,7 +242,7 @@ d'autres `1/1/2025`. Ajouter le format manquant dans la fonction `Parse-Date`.
 
 ### Lookup non créé dans la liste Documents
 → Les lookups nécessitent que la liste cible soit créée d'abord.
-Vérifier que `New-FRSClient.ps1` a bien créé toutes les listes dans le bon ordre.
+Vérifier que `Deploy-FRS.ps1` a bien créé toutes les listes dans le bon ordre.
 
 ### Upload échoue pour un fichier
 → Vérifier que le nom de fichier ne contient pas de caractères spéciaux (`#`, `%`, `&`).

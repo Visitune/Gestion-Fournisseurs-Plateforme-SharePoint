@@ -89,12 +89,12 @@ La page d'accueil affiche immédiatement :
    - **Référence document** (numéro ou code du document)
    - **Date d'expiration** (si connue) — sinon elle sera calculée automatiquement
 3. Dans le champ **URL Fichier** : uploader d'abord le fichier dans la bibliothèque
-   **Docs_Fournisseurs**, puis coller l'URL
+   **Documents_Fichiers**, puis coller l'URL
 4. Cliquer **Enregistrer** — le document est en statut **"En attente de validation"**
 
 ### Méthode 2 — Upload direct dans la bibliothèque
 
-1. Aller dans **Docs_Fournisseurs**
+1. Aller dans **Documents_Fichiers**
 2. Naviguer dans le dossier du fournisseur concerné
 3. Glisser-déposer le fichier
 4. Renseigner les métadonnées (Fournisseur, Matière, Type, Date expiration)

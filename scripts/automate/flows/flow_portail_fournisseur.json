@@ -1,4 +1,4 @@
-{
+﻿{
   "_comment": [
     "FLUX 5 — Portail fournisseur via Microsoft Forms",
     "",
@@ -23,6 +23,8 @@
     "  3. LIST_GUID_DOCUMENTS → ID liste Documents",
     "  4. LIBRARY_NAME        → Nom de la bibliothèque SP (ex: Documents_Fichiers)",
     "  5. EMAIL_QUALITE       → adresse email équipe Qualité",
+    "  6. LIST_GUID_FOURNISSEURS → ID liste Fournisseurs",
+    "  7. LIST_GUID_TYPES_DOCUMENTS → ID liste Types_Documents",
     "",
     "NOTE : Le fichier joint via Forms est sauvegardé dans OneDrive du créateur du form.",
     "       Ce flux le copie automatiquement dans SharePoint."
@@ -82,6 +84,42 @@
           "authentication": "@parameters('$authentication')"
         }
       },
+      "Chercher_fournisseur": {
+        "type": "OpenApiConnection",
+        "runAfter": { "Extraire_contenu_fichier_OneDrive": ["Succeeded"] },
+        "inputs": {
+          "host": {
+            "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+            "connectionName": "shared_sharepointonline",
+            "operationId": "GetItems"
+          },
+          "parameters": {
+            "dataset": "VOTRE_SITE_URL",
+            "table": "LIST_GUID_FOURNISSEURS",
+            "$filter": "CodeFournisseur eq '@{outputs('Obtenir_details_reponse')?['body/answers/0/answer']}'",
+            "$top": 1
+          },
+          "authentication": "@parameters('$authentication')"
+        }
+      },
+      "Chercher_type_document": {
+        "type": "OpenApiConnection",
+        "runAfter": { "Chercher_fournisseur": ["Succeeded"] },
+        "inputs": {
+          "host": {
+            "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+            "connectionName": "shared_sharepointonline",
+            "operationId": "GetItems"
+          },
+          "parameters": {
+            "dataset": "VOTRE_SITE_URL",
+            "table": "LIST_GUID_TYPES_DOCUMENTS",
+            "$filter": "Title eq '@{outputs('Obtenir_details_reponse')?['body/answers/1/answer']}'",
+            "$top": 1
+          },
+          "authentication": "@parameters('$authentication')"
+        }
+      },
       "Construire_nom_fichier": {
         "type": "InitializeVariable",
         "runAfter": { "Extraire_contenu_fichier_OneDrive": ["Succeeded"] },
@@ -89,7 +127,7 @@
           "variables": [{
             "name": "nomFichier",
             "type": "string",
-            "value": "@{outputs('Obtenir_details_reponse')?['body/answers/1/answer']}_@{outputs('Obtenir_details_reponse')?['body/answers/2/answer']}_@{outputs('Obtenir_details_reponse')?['body/answers/4/answer']}_@{outputs('Obtenir_details_reponse')?['body/answers/5/answer/name']}"
+            "value": "@{outputs('Obtenir_details_reponse')?['body/answers/1/answer']}_@{outputs('Obtenir_details_reponse')?['body/answers/2/answer']}_@{outputs('Obtenir_details_reponse')?['body/answers/3/answer']}_@{outputs('Obtenir_details_reponse')?['body/answers/5/answer/name']}"
           }]
         }
       },
@@ -113,7 +151,7 @@
       },
       "Creer_item_dans_liste_Documents": {
         "type": "OpenApiConnection",
-        "runAfter": { "Copier_fichier_vers_SharePoint": ["Succeeded"] },
+        "runAfter": { "Copier_fichier_vers_SharePoint": ["Succeeded"], "Chercher_type_document": ["Succeeded"] },
         "inputs": {
           "host": {
             "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
@@ -125,10 +163,13 @@
             "table": "LIST_GUID_DOCUMENTS",
             "item/Title": "@variables('nomFichier')",
             "item/Statut": "En attente de validation",
-            "item/DateEmission": "@outputs('Obtenir_details_reponse')?['body/answers/4/answer']",
+            "item/DateEmission": "@outputs('Obtenir_details_reponse')?['body/answers/3/answer']",
             "item/DateReception": "@utcNow()",
             "item/DocumentCourant": true,
             "item/LienFichier": "@outputs('Copier_fichier_vers_SharePoint')?['body/{Link}']",
+            "item/FournisseurId": "@first(outputs('Chercher_fournisseur')?['body/value'])?['ID']",
+            "item/TypeDocumentId": "@first(outputs('Chercher_type_document')?['body/value'])?['ID']",
+            "item/MatierePremiereText": "@outputs('Obtenir_details_reponse')?['body/answers/2/answer']",
             "item/Commentaires": "Déposé via portail fournisseur le @{utcNow('dd/MM/yyyy')} par @{outputs('Obtenir_details_reponse')?['body/responderEmailAddress']}"
           },
           "authentication": "@parameters('$authentication')"

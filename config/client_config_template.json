@@ -196,7 +196,7 @@
   },
 
   "bibliotheque_documents": {
-    "nom": "Docs_Fournisseurs",
+    "nom": "Documents_Fichiers",
     "description": "Bibliothèque centrale des documents fournisseurs"
   },
 
@@ -204,7 +204,7 @@
     "types_documents":        "Types_Documents",
     "fournisseurs":           "Fournisseurs",
     "matieres_premieres":     "Matieres_Premieres",
-    "liens_fourn_mat":        "Liens_Fournisseur_Matiere",
+    "liens_fourn_mat":        "Liens_Fourn_Mat",
     "documents":              "Documents",
     "analyse_fraude":         "Analyse_Fraude"
   }

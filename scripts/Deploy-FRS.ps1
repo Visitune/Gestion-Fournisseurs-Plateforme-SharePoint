@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Déploie la plateforme Gestion Fournisseurs (FRS) dans SharePoint Online.
 

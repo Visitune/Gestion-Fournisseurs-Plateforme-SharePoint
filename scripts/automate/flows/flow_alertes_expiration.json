@@ -54,7 +54,9 @@
           "parameters": {
             "dataset": "VOTRE_SITE_URL",
             "table": "LIST_GUID_DOCUMENTS",
-            "$filter": "DocumentCourant eq 1 and (Statut eq 'Valide' or Statut eq 'Expire bientôt')",
+            "$filter": "DocumentCourant eq 1 and DateExpiration ne null and (Statut eq 'Valide' or Statut eq 'Expire bientôt')",
+            "$expand": "TypeDocument,Fournisseur,MatierePremiere",
+            "$select": "ID,Title,DateExpiration,Statut,FournisseurId,TypeDocument/Title,TypeDocument/AlerteJ90,TypeDocument/AlerteJ30,TypeDocument/AlerteJ7,Fournisseur/Title,Fournisseur/EmailContactQualite,MatierePremiere/Title",
             "$top": 5000
           },
           "authentication": "@parameters('$authentication')"

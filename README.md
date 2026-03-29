@@ -8,8 +8,8 @@
 Ce dépôt contient une solution complète et modulaire pour la gestion de la conformité fournisseurs (IFS/BRC/FSSC) et l'automatisation du plan HACCP sur Microsoft 365.
 
 ### 🌐 Démo Client Interactive
-Le fichier `NAVIGATEUR.html` sert de guide visuel et d'interface de démonstration. 
-**Pour les clients** : Déployé sur Netlify pour une consultation instantanée sans configuration.
+Le fichier `index.html` sert de guide visuel et d'interface de démonstration.
+**Pour les clients** : Publié sur GitHub Pages pour une consultation instantanée sans configuration.
 **Pour les collègues** : Guide complet des flux SharePoint et des structures de données.
 
 ---
@@ -19,11 +19,12 @@ Le fichier `NAVIGATEUR.html` sert de guide visuel et d'interface de démonstrati
 ## Structure du projet
 
 ```
-├── NAVIGATEUR.html                       ← Présentation interactive + démo visuelle
+├── index.html                            ← Présentation interactive + démo visuelle (GitHub Pages)
 ├── PROJET_SHAREPOINT_FRS.md              ← Document de référence complet
 │
 ├── scripts/
 │   ├── Deploy-FRS.ps1                    ← Script PnP déploiement (Phase 0) — REQUIS
+│   │                                        Crée : 6 listes + bibliothèque Documents_Fichiers
 │   └── automate/
 │       └── flows/
 │           ├── flow_calcul_statuts.json       ← Flux 1 — Calcul statuts quotidien
@@ -32,15 +33,16 @@ Le fichier `NAVIGATEUR.html` sert de guide visuel et d'interface de démonstrati
 │           ├── flow_nouveau_document.json     ← Flux 4 — Archivage + versioning auto
 │           └── flow_portail_fournisseur.json  ← Flux 5 — Portail Microsoft Forms
 │
-├── GenerateurBaseFournisseur.ps1         ← Script optionnel migration fichiers serveur
-│
+├── GenerateurBaseFournisseur.ps1         ← Script optionnel : génère données de migration
+│                                            depuis fichier Excel client (Phase 2)
 ├── config/
 │   ├── client_config_template.json       ← Template à copier pour chaque client
 │   └── exemple_client_A.json             ← Exemple client agroalimentaire
 │
 ├── docs/
 │   ├── guide_utilisateur.md              ← Guide équipes Qualité + Achats
-│   └── guide_migration.md               ← Guide migration initiale (Phase 2)
+│   ├── guide_migration.md                ← Guide migration initiale (Phase 2)
+│   └── powerbi_specs.md                  ← Spécifications connecteur Power BI (Phase 3)
 │
 └── templates/
     └── email/
@@ -87,18 +89,30 @@ Register-PnPEntraIDAppForInteractiveLogin `
 
 Durée : 3 à 5 minutes. Crée les 6 listes + bibliothèque + 8 types de documents par défaut.
 
+| Objet créé | Nom interne SharePoint |
+|---|---|
+| Liste fournisseurs | `Fournisseurs` |
+| Liste types de documents | `Types_Documents` |
+| Liste matières premières | `Matieres_Premieres` |
+| Table de jonction | `Liens_Fourn_Mat` |
+| Liste documents (centrale) | `Documents` |
+| Liste analyse fraude | `Analyse_Fraude` |
+| Bibliothèque fichiers | `Documents_Fichiers` |
+
 ### Étape 3 — Importer les 5 flux Power Automate
 
 Dans Power Automate → **Importer un package** → sélectionner chaque fichier JSON.
 
 Après import, remplacer dans chaque flux :
-| Paramètre | Valeur |
-|---|---|
-| `VOTRE_SITE_URL` | URL du site SP |
-| `LIST_GUID_DOCUMENTS` | ID de la liste Documents (visible dans l'URL des paramètres de liste) |
-| `EMAIL_QUALITE` | Email équipe Qualité |
-| `EMAIL_ACHATS` | Email équipe Achats |
-| `VOTRE_FORM_ID` | ID du formulaire Microsoft Forms (Flux 5 uniquement) |
+| Paramètre | Flux concernés | Valeur |
+|---|---|---|
+| `VOTRE_SITE_URL` | Tous | URL du site SP (ex: `https://acme.sharepoint.com/sites/GestionFournisseurs`) |
+| `LIST_GUID_DOCUMENTS` | Tous | ID de la liste **Documents** (visible dans l'URL des paramètres de liste) |
+| `LIST_GUID_FOURNISSEURS` | Flux 3, 5 | ID de la liste **Fournisseurs** |
+| `LIST_GUID_TYPES_DOCUMENTS` | Flux 5 | ID de la liste **Types_Documents** |
+| `EMAIL_QUALITE` | Flux 2, 3, 5 | Email équipe Qualité |
+| `EMAIL_ACHATS` | Flux 3 | Email équipe Achats |
+| `VOTRE_FORM_ID` | Flux 5 | ID du formulaire Microsoft Forms (portail dépôt fournisseur) |
 
 > **Alternative ALM** : pour un déploiement multi-environnements (dev → prod) avec versioning Git,
 > utiliser PAC CLI : `pac solution import --path ./solution.zip`
@@ -127,15 +141,14 @@ Après import, remplacer dans chaque flux :
 
 ---
 
-## 🚀 Déploiement sur Netlify (Guide Interactif)
+## 🚀 Guide Interactif — GitHub Pages
 
-Pour partager le guide visuel `NAVIGATEUR.html` avec vos clients :
+Le fichier `index.html` est publié automatiquement via **GitHub Pages** à chaque push sur `main`.
 
-1.  **Méthode Automatique (GitHub)** : Connectez ce dépôt (privé) à Netlify. Le fichier `netlify.toml` redirigera automatiquement `/` vers `/NAVIGATEUR.html`.
-2.  **Méthode Manuelle (Drag & Drop)** : Glissez-déposez l'intégralité du dossier du projet sur [Netlify Drop](https://app.netlify.com/drop).
+**Accès** : `https://visitune.github.io/Gestion-Fournisseurs-Plateforme-SharePoint/`
 
 > [!TIP]
-> Le `netlify.toml` inclut une directive `noindex` pour éviter que les moteurs de recherche ne référencent la version démo de votre client.
+> GitHub Pages sert `index.html` à la racine par défaut — aucune configuration supplémentaire requise.
 
 ---
 

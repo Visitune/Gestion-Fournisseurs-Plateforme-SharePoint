@@ -272,7 +272,7 @@ Niveau FOURNISSEUR + MATIÈRE  (le plus fréquent)
 | `Criticité` | Choix | Haute / Moyenne / Faible |
 | `Commentaire` | Texte long | |
 
-### 5.5 Table Liens_Fournisseur_Matiere
+### 5.5 Table Liens_Fourn_Mat
 
 > Table pivot — un fournisseur peut avoir plusieurs matières, une matière peut venir de plusieurs fournisseurs
 

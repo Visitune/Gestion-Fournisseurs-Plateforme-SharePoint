@@ -62,7 +62,7 @@
               "parameters": {
                 "dataset": "VOTRE_SITE_URL",
                 "table": "LIST_GUID_DOCUMENTS",
-                "$filter": "TypeDocumentId eq @{triggerBody()?['TypeDocumentId']} and FournisseurId eq @{triggerBody()?['FournisseurId']} and DocumentCourant eq 1 and ID ne @{triggerBody()?['ID']}",
+                "$filter": "TypeDocumentId eq @{triggerBody()?['TypeDocumentId']} and FournisseurId eq @{triggerBody()?['FournisseurId']} and MatierePremiereId eq @{triggerBody()?['MatierePremiereId']} and DocumentCourant eq 1 and ID ne @{triggerBody()?['ID']}",
                 "$orderby": "Version desc",
                 "$top": 5
               },
