@@ -83,23 +83,48 @@ Register-PnPEntraIDAppForInteractiveLogin `
 
 ### Étape 2 — Lancer le script de déploiement
 
+**Mode standard** (8 types de documents par défaut, tous niveaux actifs) :
+
 ```powershell
 ./scripts/Deploy-FRS.ps1 `
   -SiteUrl  "https://client.sharepoint.com/sites/GestionFournisseurs" `
   -ClientId "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 ```
 
-Durée : 3 à 5 minutes. Crée les 6 listes + bibliothèque + 8 types de documents par défaut.
+**Mode paramétré** (types de documents et niveaux définis dans la config client) :
+
+```powershell
+./scripts/Deploy-FRS.ps1 `
+  -SiteUrl    "https://client.sharepoint.com/sites/GestionFournisseurs" `
+  -ClientId   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" `
+  -ConfigPath "./config/exemple_client_A.json"
+```
+
+Durée : 3 à 5 minutes.
+
+#### Objets créés (niveaux Fournisseur + Matière actifs)
 
 | Objet créé | Nom interne SharePoint |
 |---|---|
-| Liste fournisseurs | `Fournisseurs` |
 | Liste types de documents | `Types_Documents` |
+| Liste fournisseurs | `Fournisseurs` |
 | Liste matières premières | `Matieres_Premieres` |
 | Table de jonction | `Liens_Fourn_Mat` |
 | Liste documents (centrale) | `Documents` |
 | Liste analyse fraude | `Analyse_Fraude` |
 | Bibliothèque fichiers | `Documents_Fichiers` |
+
+> Si `niveaux_actifs` dans la config ne contient que `"Fournisseur"`, les listes
+> `Matieres_Premieres` et `Liens_Fourn_Mat` sont ignorées (client sans suivi par matière).
+
+#### Paramétrage des niveaux de suivi (`config/*.json`)
+
+La clé `niveaux_actifs` déclare quels niveaux de suivi documentaire sont actifs :
+
+| Valeur | Listes créées | Flux nécessaires |
+|---|---|---|
+| `["Fournisseur"]` | 5 listes + biblio (sans Mat. ni Lien) | Flux 1–6 (pas Flux 7) |
+| `["Fournisseur", "Matière", "Fournisseur + Matière"]` | 7 objets complets | Flux 1–7 |
 
 ### Étape 3 — Importer les 7 flux Power Automate
 

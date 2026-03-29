@@ -1,10 +1,18 @@
-﻿<#
+<#
 .SYNOPSIS
     Déploie la plateforme Gestion Fournisseurs (FRS) dans SharePoint Online.
 
 .DESCRIPTION
-    Crée les 6 listes SharePoint, leurs colonnes, vues filtrées et la bibliothèque
+    Crée les listes SharePoint, leurs colonnes, vues filtrées et la bibliothèque
     de documents. Utilise PnP PowerShell v3 (PowerShell 7.4.6+ obligatoire).
+
+    Deux modes de fonctionnement :
+    • Sans -ConfigPath : déploiement avec les 8 types de documents par défaut (tous niveaux actifs)
+    • Avec -ConfigPath  : déploiement entièrement paramétré depuis le fichier JSON client
+      → Types de documents personnalisés (noms, durées, alertes, niveaux)
+      → Niveaux actifs (Fournisseur seul OU Fournisseur+Matière)
+      Si niveaux_actifs = ["Fournisseur"] uniquement, les listes Matieres_Premieres
+      et Liens_Fourn_Mat ne sont pas créées.
 
     ─── PRÉREQUIS ───────────────────────────────────────────────────────────────
     1. PowerShell 7.4.6 ou supérieur (7.4.x antérieur à .6 peut bloquer sur PnP v3)
@@ -25,16 +33,27 @@
          -Interactive
        → Notez l'AppID retourné, il sera nécessaire pour -ClientId
 
-    ─── UTILISATION ─────────────────────────────────────────────────────────────
+    ─── UTILISATION STANDARD ────────────────────────────────────────────────────
     ./Deploy-FRS.ps1 `
       -SiteUrl  "https://acmefood.sharepoint.com/sites/GestionFournisseurs" `
       -ClientId "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
+    ─── UTILISATION AVEC CONFIG CLIENT ─────────────────────────────────────────
+    ./Deploy-FRS.ps1 `
+      -SiteUrl    "https://acmefood.sharepoint.com/sites/GestionFournisseurs" `
+      -ClientId   "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" `
+      -ConfigPath "../../config/exemple_client_A.json"
 
 .PARAMETER SiteUrl
     URL complète du site SharePoint cible. Le site doit déjà exister.
 
 .PARAMETER ClientId
     AppID de l'application Entra ID enregistrée sur ce tenant.
+
+.PARAMETER ConfigPath
+    (Optionnel) Chemin vers le fichier JSON de configuration client.
+    Si omis, les 8 types de documents par défaut sont chargés et tous les niveaux
+    de suivi sont actifs.
 #>
 
 param(
@@ -42,7 +61,10 @@ param(
     [string]$SiteUrl,
 
     [Parameter(Mandatory, HelpMessage = "AppID Entra ID (enregistré via Register-PnPEntraIDAppForInteractiveLogin)")]
-    [string]$ClientId
+    [string]$ClientId,
+
+    [Parameter(HelpMessage = "Chemin vers le fichier JSON de configuration client (optionnel)")]
+    [string]$ConfigPath = ""
 )
 
 #Requires -Version 7.4.6
@@ -54,11 +76,70 @@ $ErrorActionPreference = "Stop"
 function Write-Step { param([string]$msg) Write-Host "`n$msg" -ForegroundColor Cyan }
 function Write-OK   { param([string]$msg) Write-Host "  ✓ $msg" -ForegroundColor Green }
 function Write-Warn { param([string]$msg) Write-Host "  ⚠ $msg" -ForegroundColor DarkYellow }
+function Write-Skip { param([string]$msg) Write-Host "  ⏭  $msg" -ForegroundColor DarkGray }
 
 # ─── CONNEXION ────────────────────────────────────────────────────────────────
 Write-Step "🔌 Connexion à SharePoint..."
 Connect-PnPOnline -Url $SiteUrl -Interactive -ClientId $ClientId
 Write-OK "Connecté à : $SiteUrl"
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CHARGEMENT CONFIGURATION CLIENT
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Niveaux actifs par défaut : tous les niveaux
+$niveauxActifs = @("Fournisseur", "Matière", "Fournisseur + Matière")
+$avecMatieres  = $true
+
+# Types de documents par défaut (utilisés si -ConfigPath n'est pas fourni)
+$typesDocs = @(
+    @{ Title="Certificat IFS/BRC/FSSC";  DureeValidite=365;  AlerteJ90=$true; AlerteJ30=$true; AlerteJ7=$true;  Obligatoire=$true;  NiveauRattachement="Fournisseur" },
+    @{ Title="Fiche Technique";          DureeValidite=730;  AlerteJ90=$true; AlerteJ30=$true; AlerteJ7=$true;  Obligatoire=$true;  NiveauRattachement="Fournisseur + Matière" },
+    @{ Title="Cahier des Charges";       DureeValidite=1095; AlerteJ90=$true; AlerteJ30=$true; AlerteJ7=$false; Obligatoire=$true;  NiveauRattachement="Matière" },
+    @{ Title="Questionnaire fournisseur";DureeValidite=365;  AlerteJ90=$false;AlerteJ30=$true; AlerteJ7=$false; Obligatoire=$true;  NiveauRattachement="Fournisseur" },
+    @{ Title="Déclaration allergènes";   DureeValidite=730;  AlerteJ90=$false;AlerteJ30=$true; AlerteJ7=$false; Obligatoire=$true;  NiveauRattachement="Fournisseur + Matière" },
+    @{ Title="Déclaration OGM/Dioxine";  DureeValidite=365;  AlerteJ90=$false;AlerteJ30=$true; AlerteJ7=$false; Obligatoire=$false; NiveauRattachement="Fournisseur + Matière" },
+    @{ Title="Analyse laboratoire";      DureeValidite=365;  AlerteJ90=$false;AlerteJ30=$true; AlerteJ7=$false; Obligatoire=$false; NiveauRattachement="Fournisseur + Matière" },
+    @{ Title="Déclaration alimentarité"; DureeValidite=1825; AlerteJ90=$true; AlerteJ30=$false;AlerteJ7=$false; Obligatoire=$false; NiveauRattachement="Fournisseur + Matière" }
+)
+
+if ($ConfigPath -ne "") {
+    if (-not (Test-Path $ConfigPath)) {
+        Write-Error "Fichier de configuration introuvable : $ConfigPath"
+        exit 1
+    }
+    Write-Step "⚙️  Chargement configuration client : $ConfigPath"
+    $config = Get-Content $ConfigPath -Raw | ConvertFrom-Json
+
+    # Niveaux actifs — si la clé existe dans la config, on l'utilise
+    if ($null -ne $config.PSObject.Properties['niveaux_actifs']) {
+        $niveauxActifs = @($config.niveaux_actifs)
+    }
+    $avecMatieres = ($niveauxActifs -contains "Matière") -or ($niveauxActifs -contains "Fournisseur + Matière")
+
+    # Conversion des types de documents depuis le JSON
+    $typesDocs = @()
+    foreach ($td in $config.types_documents) {
+        # Normalisation du niveau : accepte "Fournisseur+Matière" ou "Fournisseur + Matière"
+        $niveau = ($td.niveau -replace '\s*\+\s*', '+') -replace '\+', ' + '
+        $typesDocs += @{
+            Title              = $td.nom
+            DureeValidite      = [int]$td.duree_validite_jours
+            AlerteJ90          = [bool]$td.alerte_j90
+            AlerteJ30          = [bool]$td.alerte_j30
+            AlerteJ7           = [bool]$td.alerte_j7
+            Obligatoire        = [bool]$td.obligatoire_approbation
+            NiveauRattachement = $niveau.Trim()
+        }
+    }
+
+    Write-OK "Config chargée : $($typesDocs.Count) types de documents"
+    Write-OK "Niveaux de suivi actifs : $($niveauxActifs -join ', ')"
+    if (-not $avecMatieres) {
+        Write-Warn "Suivi Matière désactivé — Matieres_Premieres et Liens_Fourn_Mat ne seront pas créées"
+    }
+}
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -90,17 +171,6 @@ foreach ($col in $colonnesTD) {
     }
 }
 
-# Charger les types de documents par défaut
-$typesDocs = @(
-    @{ Title="Certificat IFS/BRC/FSSC";  DureeValidite=365;  AlerteJ90=$true; AlerteJ30=$true; AlerteJ7=$true;  Obligatoire=$true;  NiveauRattachement="Fournisseur" },
-    @{ Title="Fiche Technique";          DureeValidite=730;  AlerteJ90=$true; AlerteJ30=$true; AlerteJ7=$true;  Obligatoire=$true;  NiveauRattachement="Fournisseur + Matière" },
-    @{ Title="Cahier des Charges";       DureeValidite=1095; AlerteJ90=$true; AlerteJ30=$true; AlerteJ7=$false; Obligatoire=$true;  NiveauRattachement="Matière" },
-    @{ Title="Questionnaire fournisseur";DureeValidite=365;  AlerteJ90=$false;AlerteJ30=$true; AlerteJ7=$false; Obligatoire=$true;  NiveauRattachement="Fournisseur" },
-    @{ Title="Déclaration allergènes";   DureeValidite=730;  AlerteJ90=$false;AlerteJ30=$true; AlerteJ7=$false; Obligatoire=$true;  NiveauRattachement="Fournisseur + Matière" },
-    @{ Title="Déclaration OGM/Dioxine";  DureeValidite=365;  AlerteJ90=$false;AlerteJ30=$true; AlerteJ7=$false; Obligatoire=$false; NiveauRattachement="Fournisseur + Matière" },
-    @{ Title="Analyse laboratoire";      DureeValidite=365;  AlerteJ90=$false;AlerteJ30=$true; AlerteJ7=$false; Obligatoire=$false; NiveauRattachement="Fournisseur + Matière" },
-    @{ Title="Déclaration alimentarité"; DureeValidite=1825; AlerteJ90=$true; AlerteJ30=$false;AlerteJ7=$false; Obligatoire=$false; NiveauRattachement="Fournisseur + Matière" }
-)
 foreach ($td in $typesDocs) {
     Add-PnPListItem -List "Types_Documents" -Values @{
         Title               = $td.Title
@@ -112,7 +182,7 @@ foreach ($td in $typesDocs) {
         NiveauRattachement  = $td.NiveauRattachement
     } | Out-Null
 }
-Write-OK "Types_Documents créée + 8 types de documents chargés"
+Write-OK "Types_Documents créée + $($typesDocs.Count) types de documents chargés"
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -136,38 +206,48 @@ Write-OK "Fournisseurs créée"
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# LISTE 3 — Matieres_Premieres
+# LISTE 3 — Matieres_Premieres  (créée uniquement si suivi Matière actif)
 # ═══════════════════════════════════════════════════════════════════════════════
-Write-Step "📦 [3/7] Création liste Matieres_Premieres..."
+if ($avecMatieres) {
+    Write-Step "📦 [3/7] Création liste Matieres_Premieres..."
 
-New-PnPList -Title "Matieres_Premieres" -Template GenericList -OnQuickLaunch | Out-Null
+    New-PnPList -Title "Matieres_Premieres" -Template GenericList -OnQuickLaunch | Out-Null
 
-Add-PnPField -List "Matieres_Premieres" -DisplayName "Code ressource"  -InternalName "CodeRessource" -Type Text   -AddToDefaultView | Out-Null
-Add-PnPField -List "Matieres_Premieres" -DisplayName "Catégorie"       -InternalName "Categorie"     -Type Choice -AddToDefaultView `
-    -Choices @("Ingrédient","Emballage","Auxiliaire technologique","Arôme","Additif","Autre") | Out-Null
-Add-PnPField -List "Matieres_Premieres" -DisplayName "Criticité"       -InternalName "Criticite"     -Type Choice -AddToDefaultView `
-    -Choices @("Haute","Moyenne","Faible") | Out-Null
+    Add-PnPField -List "Matieres_Premieres" -DisplayName "Code ressource"  -InternalName "CodeRessource" -Type Text   -AddToDefaultView | Out-Null
+    Add-PnPField -List "Matieres_Premieres" -DisplayName "Catégorie"       -InternalName "Categorie"     -Type Choice -AddToDefaultView `
+        -Choices @("Ingrédient","Emballage","Auxiliaire technologique","Arôme","Additif","Autre") | Out-Null
+    Add-PnPField -List "Matieres_Premieres" -DisplayName "Criticité"       -InternalName "Criticite"     -Type Choice -AddToDefaultView `
+        -Choices @("Haute","Moyenne","Faible") | Out-Null
 
-Write-OK "Matieres_Premieres créée"
+    Write-OK "Matieres_Premieres créée"
+} else {
+    Write-Step "⏭  [3/7] Matieres_Premieres — ignorée (niveaux_actifs : Fournisseur uniquement)"
+    Write-Skip "Suivi par matière désactivé pour ce client"
+}
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# LISTE 4 — Liens_Fourn_Mat
+# LISTE 4 — Liens_Fourn_Mat  (créée uniquement si suivi Matière actif)
 # Table de jonction Fournisseur × Matière
 # ═══════════════════════════════════════════════════════════════════════════════
-Write-Step "🔗 [4/7] Création liste Liens_Fourn_Mat..."
+if ($avecMatieres) {
+    Write-Step "🔗 [4/7] Création liste Liens_Fourn_Mat..."
 
-New-PnPList -Title "Liens_Fourn_Mat" -Template GenericList -OnQuickLaunch | Out-Null
+    New-PnPList -Title "Liens_Fourn_Mat" -Template GenericList -OnQuickLaunch | Out-Null
 
-Add-PnPField -List "Liens_Fourn_Mat" -DisplayName "Fournisseur"     -InternalName "Fournisseur"   -Type Lookup `
-    -LookupList "Fournisseurs" -LookupField "Title" -AddToDefaultView | Out-Null
-Add-PnPField -List "Liens_Fourn_Mat" -DisplayName "Matière première" -InternalName "MatierePremiere" -Type Lookup `
-    -LookupList "Matieres_Premieres" -LookupField "Title" -AddToDefaultView | Out-Null
-Add-PnPField -List "Liens_Fourn_Mat" -DisplayName "Statut du lien"  -InternalName "StatutLien"    -Type Choice -AddToDefaultView `
-    -Choices @("En approbation","Actif","Inactif","Suspendu") | Out-Null
-Add-PnPField -List "Liens_Fourn_Mat" -DisplayName "Référence OA"    -InternalName "RefOA"         -Type Text   | Out-Null
+    Add-PnPField -List "Liens_Fourn_Mat" -DisplayName "Fournisseur"      -InternalName "Fournisseur"    -Type Lookup `
+        -LookupList "Fournisseurs" -LookupField "Title" -AddToDefaultView | Out-Null
+    Add-PnPField -List "Liens_Fourn_Mat" -DisplayName "Matière première" -InternalName "MatierePremiere" -Type Lookup `
+        -LookupList "Matieres_Premieres" -LookupField "Title" -AddToDefaultView | Out-Null
+    Add-PnPField -List "Liens_Fourn_Mat" -DisplayName "Statut du lien"   -InternalName "StatutLien"     -Type Choice -AddToDefaultView `
+        -Choices @("En approbation","Actif","Inactif","Suspendu") | Out-Null
+    Add-PnPField -List "Liens_Fourn_Mat" -DisplayName "Référence OA"     -InternalName "RefOA"          -Type Text   | Out-Null
 
-Write-OK "Liens_Fourn_Mat créée"
+    Write-OK "Liens_Fourn_Mat créée"
+} else {
+    Write-Step "⏭  [4/7] Liens_Fourn_Mat — ignorée (niveaux_actifs : Fournisseur uniquement)"
+    Write-Skip "Suivi par source Fournisseur×Matière désactivé pour ce client"
+}
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -178,11 +258,15 @@ Write-Step "📄 [5/7] Création liste Documents (table centrale)..."
 New-PnPList -Title "Documents" -Template GenericList -OnQuickLaunch | Out-Null
 Set-PnPList -Identity "Documents" -EnableVersioning $true -MajorVersions 50 | Out-Null
 
-# Colonnes lookup
-Add-PnPField -List "Documents" -DisplayName "Type de document"    -InternalName "TypeDocument"    -Type Lookup -LookupList "Types_Documents"    -LookupField "Title" -AddToDefaultView | Out-Null
-Add-PnPField -List "Documents" -DisplayName "Fournisseur"         -InternalName "Fournisseur"     -Type Lookup -LookupList "Fournisseurs"        -LookupField "Title" -AddToDefaultView | Out-Null
-Add-PnPField -List "Documents" -DisplayName "Matière première"    -InternalName "MatierePremiere" -Type Lookup -LookupList "Matieres_Premieres"  -LookupField "Title" | Out-Null
-Add-PnPField -List "Documents" -DisplayName "Lien Fourn×Mat"      -InternalName "LienFournMat"    -Type Lookup -LookupList "Liens_Fourn_Mat"     -LookupField "Title" | Out-Null
+# Colonnes lookup — Fournisseur et Type de document toujours présents
+Add-PnPField -List "Documents" -DisplayName "Type de document" -InternalName "TypeDocument"  -Type Lookup -LookupList "Types_Documents" -LookupField "Title" -AddToDefaultView | Out-Null
+Add-PnPField -List "Documents" -DisplayName "Fournisseur"      -InternalName "Fournisseur"   -Type Lookup -LookupList "Fournisseurs"     -LookupField "Title" -AddToDefaultView | Out-Null
+
+# Colonnes lookup Matière — uniquement si suivi Matière actif
+if ($avecMatieres) {
+    Add-PnPField -List "Documents" -DisplayName "Matière première" -InternalName "MatierePremiere" -Type Lookup -LookupList "Matieres_Premieres" -LookupField "Title" | Out-Null
+    Add-PnPField -List "Documents" -DisplayName "Lien Fourn×Mat"   -InternalName "LienFournMat"    -Type Lookup -LookupList "Liens_Fourn_Mat"    -LookupField "Title" | Out-Null
+}
 
 # Colonnes statut / dates
 Add-PnPField -List "Documents" -DisplayName "Statut" -InternalName "Statut" -Type Choice -AddToDefaultView `
@@ -230,7 +314,7 @@ Add-PnPView -List "Documents" -Title "Expire bientôt"       -Query $vueSoon `
 Add-PnPView -List "Documents" -Title "En attente validation" -Query $vuePending `
     -Fields @("Title","Fournisseur","TypeDocument","DateReception","LienFichier") | Out-Null
 
-Write-OK "Documents créée (15 colonnes + 3 vues filtrées)"
+Write-OK "Documents créée (colonnes + 3 vues filtrées)"
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -241,7 +325,15 @@ Write-Step "🔒 [6/7] Création liste Analyse_Fraude (accès restreint)..."
 New-PnPList -Title "Analyse_Fraude" -Template GenericList | Out-Null
 # Pas sur QuickLaunch — liste confidentielle
 
-Add-PnPField -List "Analyse_Fraude" -DisplayName "Lien Fourn×Mat"         -InternalName "LienFournMat"       -Type Lookup -LookupList "Liens_Fourn_Mat" -LookupField "Title" -AddToDefaultView | Out-Null
+# Lien de rattachement : Fourn×Mat si disponible, sinon Fournisseur seul
+if ($avecMatieres) {
+    Add-PnPField -List "Analyse_Fraude" -DisplayName "Lien Fourn×Mat" -InternalName "LienFournMat" -Type Lookup `
+        -LookupList "Liens_Fourn_Mat" -LookupField "Title" -AddToDefaultView | Out-Null
+} else {
+    Add-PnPField -List "Analyse_Fraude" -DisplayName "Fournisseur" -InternalName "Fournisseur" -Type Lookup `
+        -LookupList "Fournisseurs" -LookupField "Title" -AddToDefaultView | Out-Null
+}
+
 Add-PnPField -List "Analyse_Fraude" -DisplayName "Paramètre analysé"      -InternalName "ParametreAnalyse"  -Type Text   -AddToDefaultView | Out-Null
 Add-PnPField -List "Analyse_Fraude" -DisplayName "Score historique (0-5)" -InternalName "ScoreHistorique"   -Type Number -AddToDefaultView | Out-Null
 Add-PnPField -List "Analyse_Fraude" -DisplayName "Score marché (0-5)"     -InternalName "ScoreMarche"       -Type Number -AddToDefaultView | Out-Null
@@ -275,21 +367,33 @@ Write-OK "Documents_Fichiers créée (versioning 50 versions actif)"
 # ═══════════════════════════════════════════════════════════════════════════════
 # RÉCAPITULATIF
 # ═══════════════════════════════════════════════════════════════════════════════
+$listesCreees = "Types_Documents · Fournisseurs"
+if ($avecMatieres) { $listesCreees += " · Matieres_Premieres · Liens_Fourn_Mat" }
+$listesCreees += " · Documents · Analyse_Fraude"
+
+$niveauxLabel = $niveauxActifs -join ' · '
+
 Write-Host ""
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Green
 Write-Host " ✅  Déploiement FRS terminé avec succès !" -ForegroundColor Green
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Green
 Write-Host ""
-Write-Host " Site     : $SiteUrl" -ForegroundColor White
-Write-Host " Listes   : Types_Documents · Fournisseurs · Matieres_Premieres" -ForegroundColor White
-Write-Host "            Liens_Fourn_Mat · Documents · Analyse_Fraude" -ForegroundColor White
-Write-Host " Biblio   : Documents_Fichiers" -ForegroundColor White
-Write-Host " Vues     : 3 vues filtrées dans Documents" -ForegroundColor White
-Write-Host " Données  : 8 types de documents pré-chargés" -ForegroundColor White
+Write-Host " Site       : $SiteUrl" -ForegroundColor White
+Write-Host " Listes     : $listesCreees" -ForegroundColor White
+Write-Host " Biblio     : Documents_Fichiers" -ForegroundColor White
+Write-Host " Vues       : 3 vues filtrées dans Documents" -ForegroundColor White
+Write-Host " Types docs : $($typesDocs.Count) types chargés" -ForegroundColor White
+Write-Host " Niveaux    : $niveauxLabel" -ForegroundColor White
+if ($ConfigPath -ne "") {
+Write-Host " Config     : $ConfigPath" -ForegroundColor White
+}
 Write-Host ""
 Write-Host " ⚠️  Étapes manuelles restantes :" -ForegroundColor Yellow
 Write-Host "    1. Configurer les permissions de la liste Analyse_Fraude" -ForegroundColor Yellow
-Write-Host "    2. Importer les 5 flux Power Automate (dossier scripts/automate/flows/)" -ForegroundColor Yellow
+Write-Host "    2. Importer les 7 flux Power Automate (dossier scripts/automate/flows/)" -ForegroundColor Yellow
+if (-not $avecMatieres) {
+Write-Host "       → Flux 7 (Init checklist lien) non nécessaire — suivi Matière inactif" -ForegroundColor DarkYellow
+}
 Write-Host "    3. Charger les données Fournisseurs et Matières (depuis l'Excel client)" -ForegroundColor Yellow
 Write-Host "    4. Personnaliser les alertes email (adresses destinataires dans les flows)" -ForegroundColor Yellow
 Write-Host ""

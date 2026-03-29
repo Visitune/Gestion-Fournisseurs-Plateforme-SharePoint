@@ -11,6 +11,9 @@
     "timezone": "Romance Standard Time"
   },
 
+  "_comment_niveaux": "Déclarer ici les niveaux de suivi actifs pour ce client. Valeurs possibles : 'Fournisseur', 'Matière', 'Fournisseur + Matière'. Si 'Matière' et 'Fournisseur + Matière' sont absents, les listes Matieres_Premieres et Liens_Fourn_Mat ne seront pas créées.",
+  "niveaux_actifs": ["Fournisseur", "Matière", "Fournisseur + Matière"],
+
   "alertes": {
     "jours_avant_expiration": [90, 30, 7],
     "heure_calcul_quotidien": "08:00",
@@ -25,7 +28,7 @@
     {
       "nom": "Fiche Technique",
       "code": "FT",
-      "niveau": "Fournisseur+Matière",
+      "niveau": "Fournisseur + Matière",
       "duree_validite_jours": 730,
       "alerte_j90": true,
       "alerte_j30": true,
@@ -37,7 +40,7 @@
     {
       "nom": "Cahier des Charges Ingrédient",
       "code": "CDC",
-      "niveau": "Fournisseur+Matière",
+      "niveau": "Fournisseur + Matière",
       "duree_validite_jours": 1095,
       "alerte_j90": true,
       "alerte_j30": true,
@@ -73,7 +76,7 @@
     {
       "nom": "Déclaration Alimentarité",
       "code": "DECL_ALIM",
-      "niveau": "Fournisseur+Matière",
+      "niveau": "Fournisseur + Matière",
       "duree_validite_jours": 1825,
       "alerte_j90": true,
       "alerte_j30": true,
@@ -85,7 +88,7 @@
     {
       "nom": "Analyse Laboratoire",
       "code": "ANALYSE_LABO",
-      "niveau": "Fournisseur+Matière",
+      "niveau": "Fournisseur + Matière",
       "duree_validite_jours": 365,
       "alerte_j90": false,
       "alerte_j30": true,
@@ -109,7 +112,7 @@
     {
       "nom": "Autre Document",
       "code": "AUTRE",
-      "niveau": "Fournisseur+Matière",
+      "niveau": "Fournisseur + Matière",
       "duree_validite_jours": 365,
       "alerte_j90": false,
       "alerte_j30": false,

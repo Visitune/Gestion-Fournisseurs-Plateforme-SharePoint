@@ -11,6 +11,8 @@
     "timezone": "Romance Standard Time"
   },
 
+  "niveaux_actifs": ["Fournisseur", "Matière", "Fournisseur + Matière"],
+
   "alertes": {
     "jours_avant_expiration": [90, 30, 7],
     "heure_calcul_quotidien": "08:00",
@@ -25,7 +27,7 @@
     {
       "nom": "Fiche Technique",
       "code": "FT",
-      "niveau": "Fournisseur+Matière",
+      "niveau": "Fournisseur + Matière",
       "duree_validite_jours": 730,
       "alerte_j90": true,
       "alerte_j30": true,
@@ -37,7 +39,7 @@
     {
       "nom": "Cahier des Charges Ingrédient",
       "code": "CDC",
-      "niveau": "Fournisseur+Matière",
+      "niveau": "Fournisseur + Matière",
       "duree_validite_jours": 1095,
       "alerte_j90": true,
       "alerte_j30": true,
@@ -73,7 +75,7 @@
     {
       "nom": "EN.ACHAT.006 — OGM, Dioxine, Nano",
       "code": "EN_ACHAT_006",
-      "niveau": "Fournisseur+Matière",
+      "niveau": "Fournisseur + Matière",
       "duree_validite_jours": 365,
       "alerte_j90": false,
       "alerte_j30": true,
@@ -85,7 +87,7 @@
     {
       "nom": "EN.ACHAT.007 — Questionnaire Allergènes",
       "code": "EN_ACHAT_007",
-      "niveau": "Fournisseur+Matière",
+      "niveau": "Fournisseur + Matière",
       "duree_validite_jours": 365,
       "alerte_j90": false,
       "alerte_j30": true,
@@ -109,7 +111,7 @@
     {
       "nom": "EN.ACHAT.010 — Corps étrangers et risques chimiques",
       "code": "EN_ACHAT_010",
-      "niveau": "Fournisseur+Matière",
+      "niveau": "Fournisseur + Matière",
       "duree_validite_jours": 365,
       "alerte_j90": false,
       "alerte_j30": true,
@@ -121,7 +123,7 @@
     {
       "nom": "EN.ACHAT.011 — Plan de contrôle contaminants",
       "code": "EN_ACHAT_011",
-      "niveau": "Fournisseur+Matière",
+      "niveau": "Fournisseur + Matière",
       "duree_validite_jours": 365,
       "alerte_j90": false,
       "alerte_j30": true,
@@ -145,7 +147,7 @@
     {
       "nom": "EN.ACHAT.017 — Composition ingrédients",
       "code": "EN_ACHAT_017",
-      "niveau": "Fournisseur+Matière",
+      "niveau": "Fournisseur + Matière",
       "duree_validite_jours": 365,
       "alerte_j90": false,
       "alerte_j30": true,
@@ -169,7 +171,7 @@
     {
       "nom": "Analyse Laboratoire",
       "code": "ANALYSE_LABO",
-      "niveau": "Fournisseur+Matière",
+      "niveau": "Fournisseur + Matière",
       "duree_validite_jours": 365,
       "alerte_j90": false,
       "alerte_j30": true,
