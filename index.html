@@ -1442,6 +1442,21 @@ table.info-table tr:hover td { background: var(--overlay); }
         </div>
       </div>
 
+      <!-- ═══ SÉLECTEUR DE MODE ═══════════════════════════════════════════ -->
+      <div style="display:flex;gap:8px;margin-bottom:24px;background:var(--gris-l);border-radius:10px;padding:4px">
+        <button onclick="switchMode('script')" id="btn-mode-script"
+          style="flex:1;padding:9px 12px;border:none;border-radius:8px;font-size:13.5px;font-weight:700;cursor:pointer;transition:all .2s;background:var(--bleu);color:#fff;box-shadow:0 2px 6px rgba(0,0,0,.15)">
+          ⚡ Mode Script <span style="font-weight:400;font-size:12px">(recommandé — 30 min)</span>
+        </button>
+        <button onclick="switchMode('manuel')" id="btn-mode-manuel"
+          style="flex:1;padding:9px 12px;border:none;border-radius:8px;font-size:13.5px;font-weight:700;cursor:pointer;transition:all .2s;background:transparent;color:var(--text-2)">
+          🖱️ Mode Manuel <span style="font-weight:400;font-size:12px">(sans script — 2h à 3h)</span>
+        </button>
+      </div>
+
+      <!-- ─── MODE SCRIPT ──────────────────────────────────────────────── -->
+      <div id="mode-script">
+
       <div class="g2">
         <!-- Colonne gauche : étapes détaillées -->
         <div>
@@ -1534,6 +1549,11 @@ table.info-table tr:hover td { background: var(--overlay); }
                 <h4>Lancer le script de déploiement</h4>
                 <p style="color:var(--text-2);font-size:13.5px">Remplacez l'URL et l'AppID par les vraies valeurs du client, puis exécutez :</p>
                 <div style="background:#F3F2F1;border-radius:4px;padding:10px 14px;font-size:11.5px;font-family:'Courier New',monospace;color:#323130;margin-top:6px;overflow-x:auto">./Deploy-FRS.ps1 `<br>&nbsp;&nbsp;-SiteUrl "https://acmefood.sharepoint.com/sites/GestionFournisseurs" `<br>&nbsp;&nbsp;-ClientId "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"</div>
+                <p style="font-size:12.5px;color:var(--text-2);margin:10px 0 4px">Ou avec une <strong>configuration client personnalisée</strong> (types de documents spécifiques, niveaux de suivi adaptés) :</p>
+                <div style="background:#F3F2F1;border-radius:4px;padding:10px 14px;font-size:11.5px;font-family:'Courier New',monospace;color:#323130;overflow-x:auto">./Deploy-FRS.ps1 `<br>&nbsp;&nbsp;-SiteUrl&nbsp;&nbsp;&nbsp;&nbsp;"https://acmefood.sharepoint.com/sites/GestionFournisseurs" `<br>&nbsp;&nbsp;-ClientId&nbsp;&nbsp;&nbsp;"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" `<br>&nbsp;&nbsp;-ConfigPath "../config/exemple_client_A.json"</div>
+                <div style="background:#EDE9FE;border-radius:6px;padding:8px 12px;font-size:12.5px;margin-top:8px;border-left:3px solid var(--violet)">
+                  <strong>Qu'est-ce que ça change ?</strong> Le fichier JSON client définit exactement quels types de documents créer et si le client suit ses matières premières individuellement (niveau <em>Fournisseur + Matière</em>) ou seulement ses fournisseurs (niveau <em>Fournisseur</em> seul). Voir la section <strong>Configuration</strong> pour créer votre JSON client.
+                </div>
                 <div style="background:#DCFCE7;border-radius:6px;padding:10px 14px;font-size:13px;margin-top:10px;border-left:3px solid var(--vert)">
                   <strong>Ce que vous allez voir défiler :</strong>
                   <div style="font-family:'Courier New',monospace;font-size:11px;color:#166534;margin-top:6px;display:flex;flex-direction:column;gap:2px">
@@ -1722,6 +1742,360 @@ table.info-table tr:hover td { background: var(--overlay); }
           </div>
         </div>
       </div>
+
+      </div><!-- /mode-script -->
+
+      <!-- ─── MODE MANUEL ──────────────────────────────────────────────── -->
+      <div id="mode-manuel" style="display:none">
+
+        <div class="callout" style="background:var(--orange-l);border-left:3px solid var(--orange);margin-bottom:24px">
+          <div class="co-icon"><i data-lucide="clock" style="color:var(--orange)"></i></div>
+          <div>
+            <strong>Mode manuel — pour aller sans script</strong><br>
+            <span style="font-size:13px">Idéal si vous ne pouvez pas installer PowerShell ou si vous préférez comprendre chaque étape. Comptez <strong>2h à 3h</strong> pour un premier déploiement. Toutes les opérations se font directement dans le navigateur, sur le site SharePoint du client.</span>
+          </div>
+        </div>
+
+        <!-- ══ M1 — Créer le site SharePoint ══════════════════════════ -->
+        <div style="border:2px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:20px">
+          <div style="background:var(--bleu);color:#fff;padding:12px 18px;display:flex;align-items:center;gap:10px">
+            <span style="width:28px;height:28px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;flex-shrink:0">M1</span>
+            <span style="font-weight:700;font-size:15px">Créer le site SharePoint</span>
+            <span style="margin-left:auto;font-size:12px;opacity:.8">⏱ 5 min</span>
+          </div>
+          <div style="padding:16px 18px;display:flex;flex-direction:column;gap:12px">
+            <p style="font-size:13.5px;color:var(--text-2);margin:0">Si le site n'existe pas encore, le créer depuis le Centre d'administration Microsoft 365.</p>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;gap:10px;align-items:flex-start">
+                <div style="min-width:22px;height:22px;background:var(--bleu);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;margin-top:1px">1</div>
+                <div style="font-size:13.5px">Aller sur <strong>admin.microsoft.com</strong> → <strong>SharePoint</strong> → <strong>Sites actifs</strong></div>
+              </div>
+              <div style="display:flex;gap:10px;align-items:flex-start">
+                <div style="min-width:22px;height:22px;background:var(--bleu);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;margin-top:1px">2</div>
+                <div style="font-size:13.5px">Cliquer <strong>+ Créer</strong> → choisir <strong>Site d'équipe</strong></div>
+              </div>
+              <div style="display:flex;gap:10px;align-items:flex-start">
+                <div style="min-width:22px;height:22px;background:var(--bleu);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;margin-top:1px">3</div>
+                <div style="font-size:13.5px">Nom du site : <code style="background:#F3F2F1;padding:1px 5px;border-radius:3px;font-size:12px">GestionFournisseurs</code> — noter l'URL générée</div>
+              </div>
+            </div>
+            <!-- Illustration mockup -->
+            <div style="background:#F8FAFC;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-top:4px">
+              <div style="background:#0078D4;padding:7px 12px;display:flex;align-items:center;gap:8px">
+                <div style="display:flex;gap:4px"><div style="width:10px;height:10px;background:rgba(255,255,255,.3);border-radius:50%"></div><div style="width:10px;height:10px;background:rgba(255,255,255,.3);border-radius:50%"></div><div style="width:10px;height:10px;background:rgba(255,255,255,.3);border-radius:50%"></div></div>
+                <div style="background:rgba(255,255,255,.15);border-radius:4px;padding:2px 10px;font-size:10px;font-family:'Courier New',monospace;color:#fff;flex:1">admin.microsoft.com › sharepoint › site-management</div>
+              </div>
+              <div style="padding:14px 16px">
+                <div style="font-size:11px;font-weight:700;color:#0078D4;margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">Centres d'administration SharePoint — Sites actifs</div>
+                <div style="display:flex;gap:8px;margin-bottom:10px">
+                  <div style="background:#0078D4;color:#fff;padding:5px 12px;border-radius:4px;font-size:12px;font-weight:600">+ Créer</div>
+                  <div style="background:#F3F2F1;padding:5px 12px;border-radius:4px;font-size:12px;color:var(--text-2)">Supprimer</div>
+                  <div style="background:#F3F2F1;padding:5px 12px;border-radius:4px;font-size:12px;color:var(--text-2)">Modifier</div>
+                </div>
+                <div style="border:1px solid var(--border);border-radius:6px;overflow:hidden;font-size:12px">
+                  <div style="display:grid;grid-template-columns:2fr 2fr 1fr 1fr;background:#F3F2F1;padding:6px 10px;font-weight:700;font-size:11px;color:var(--text-2)">
+                    <span>Nom du site</span><span>URL</span><span>Type</span><span>Stockage</span>
+                  </div>
+                  <div style="display:grid;grid-template-columns:2fr 2fr 1fr 1fr;padding:7px 10px;border-top:1px solid var(--border);background:#EFF6FF">
+                    <span style="color:#0078D4;font-weight:600">GestionFournisseurs ✦</span>
+                    <span style="color:var(--text-3);font-size:11px">/sites/GestionFournisseurs</span>
+                    <span>Équipe</span><span>0,1 Go</span>
+                  </div>
+                  <div style="display:grid;grid-template-columns:2fr 2fr 1fr 1fr;padding:7px 10px;border-top:1px solid var(--border)">
+                    <span style="color:#0078D4">Intranet</span><span style="color:var(--text-3);font-size:11px">/sites/Intranet</span><span>Communication</span><span>2,4 Go</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ M2 — Créer les listes ═══════════════════════════════════ -->
+        <div style="border:2px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:20px">
+          <div style="background:#7B1FA2;color:#fff;padding:12px 18px;display:flex;align-items:center;gap:10px">
+            <span style="width:28px;height:28px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;flex-shrink:0">M2</span>
+            <span style="font-weight:700;font-size:15px">Créer les 6 listes SharePoint</span>
+            <span style="margin-left:auto;font-size:12px;opacity:.8">⏱ 30 min</span>
+          </div>
+          <div style="padding:16px 18px">
+
+            <p style="font-size:13.5px;color:var(--text-2);margin:0 0 12px">Dans le site SharePoint, créer chaque liste une à une via le menu <strong>+ Nouveau</strong>. Pour chaque liste, répéter le processus d'ajout de colonnes décrit ci-dessous.</p>
+
+            <!-- Comment créer une liste -->
+            <div style="background:var(--gris-l);border-radius:10px;padding:14px 16px;margin-bottom:16px">
+              <div style="font-weight:700;font-size:13px;margin-bottom:8px">Comment créer une liste vide</div>
+              <div style="display:flex;flex-direction:column;gap:6px;font-size:13px">
+                <div style="display:flex;gap:8px;align-items:flex-start"><span style="background:#0078D4;color:#fff;border-radius:50%;min-width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;margin-top:1px">1</span><span>Sur la page d'accueil du site → cliquer <strong>+ Nouveau</strong> → <strong>Liste</strong></span></div>
+                <div style="display:flex;gap:8px;align-items:flex-start"><span style="background:#0078D4;color:#fff;border-radius:50%;min-width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;margin-top:1px">2</span><span>Choisir <strong>Liste vide</strong></span></div>
+                <div style="display:flex;gap:8px;align-items:flex-start"><span style="background:#0078D4;color:#fff;border-radius:50%;min-width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;margin-top:1px">3</span><span>Saisir le nom exact (voir tableau) → <strong>Créer</strong></span></div>
+                <div style="display:flex;gap:8px;align-items:flex-start"><span style="background:#0078D4;color:#fff;border-radius:50%;min-width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;margin-top:1px">4</span><span>Cocher <strong>Afficher dans le menu de navigation du site</strong></span></div>
+              </div>
+            </div>
+
+            <!-- Comment ajouter une colonne -->
+            <div style="background:var(--gris-l);border-radius:10px;padding:14px 16px;margin-bottom:16px">
+              <div style="font-weight:700;font-size:13px;margin-bottom:8px">Comment ajouter une colonne</div>
+              <div style="display:flex;flex-direction:column;gap:6px;font-size:13px">
+                <div style="display:flex;gap:8px;align-items:flex-start"><span style="background:#7B1FA2;color:#fff;border-radius:50%;min-width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;margin-top:1px">1</span><span>Dans la liste → cliquer <strong>+ Ajouter une colonne</strong> (en haut à droite de l'en-tête)</span></div>
+                <div style="display:flex;gap:8px;align-items:flex-start"><span style="background:#7B1FA2;color:#fff;border-radius:50%;min-width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;margin-top:1px">2</span><span>Choisir le type (Texte, Choix, Date, Nombre, Oui/Non, Lookup, URL…)</span></div>
+                <div style="display:flex;gap:8px;align-items:flex-start"><span style="background:#7B1FA2;color:#fff;border-radius:50%;min-width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;margin-top:1px">3</span><span>Saisir le <strong>Nom de la colonne</strong> exactement comme indiqué (minuscules/majuscules comptent)</span></div>
+                <div style="display:flex;gap:8px;align-items:flex-start"><span style="background:#7B1FA2;color:#fff;border-radius:50%;min-width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;margin-top:1px">4</span><span>Pour les colonnes <strong>Lookup</strong> : choisir "Recherche" → sélectionner la liste source dans le menu déroulant</span></div>
+              </div>
+            </div>
+
+            <!-- Illustration ajout colonne -->
+            <div style="background:#F8FAFC;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:16px">
+              <div style="background:#0078D4;padding:7px 12px;display:flex;align-items:center;gap:8px">
+                <div style="display:flex;gap:4px"><div style="width:10px;height:10px;background:rgba(255,255,255,.3);border-radius:50%"></div><div style="width:10px;height:10px;background:rgba(255,255,255,.3);border-radius:50%"></div></div>
+                <div style="background:rgba(255,255,255,.15);border-radius:4px;padding:2px 10px;font-size:10px;font-family:'Courier New',monospace;color:#fff;flex:1">…/sites/GestionFournisseurs/Lists/Types_Documents</div>
+              </div>
+              <div style="padding:12px 14px">
+                <div style="font-size:11px;color:var(--text-2);margin-bottom:6px">📋 Types_Documents</div>
+                <div style="border:1px solid var(--border);border-radius:6px;overflow:hidden;font-size:12px;margin-bottom:8px">
+                  <div style="display:grid;grid-template-columns:2fr 1.2fr 1fr 1fr 1fr;background:#F3F2F1;padding:5px 10px;font-weight:700;font-size:11px;color:var(--text-2);gap:4px">
+                    <span>Titre</span><span>NiveauRattachement</span><span>DureeValidite</span><span>Obligatoire</span><span style="color:#0078D4">+ Ajouter ▸</span>
+                  </div>
+                  <div style="display:grid;grid-template-columns:2fr 1.2fr 1fr 1fr 1fr;padding:6px 10px;border-top:1px solid var(--border);background:#EFF6FF;gap:4px">
+                    <span style="font-weight:600">Fiche Technique</span>
+                    <span style="background:#DBEAFE;color:#1D4ED8;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700;width:fit-content">Fournisseur + Matière</span>
+                    <span>730</span>
+                    <span style="color:var(--vert);font-weight:700">✓ Oui</span>
+                    <span></span>
+                  </div>
+                  <div style="display:grid;grid-template-columns:2fr 1.2fr 1fr 1fr 1fr;padding:6px 10px;border-top:1px solid var(--border);gap:4px">
+                    <span>Certificat GFSI</span>
+                    <span style="background:#E0F2FE;color:#075985;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700;width:fit-content">Fournisseur</span>
+                    <span>365</span>
+                    <span style="color:var(--vert);font-weight:700">✓ Oui</span>
+                    <span></span>
+                  </div>
+                </div>
+                <div style="font-size:11.5px;color:var(--text-2)">💡 Vous êtes en train d'ajouter la colonne <strong>AlerteJ90</strong> (type : Oui/Non)</div>
+              </div>
+            </div>
+
+            <!-- Les 6 listes avec leurs colonnes -->
+            <div style="display:flex;flex-direction:column;gap:14px">
+
+              <!-- Types_Documents -->
+              <details style="border:1.5px solid #90CAF9;border-radius:10px;overflow:hidden">
+                <summary style="background:var(--bleu-l);padding:11px 14px;cursor:pointer;font-weight:700;font-size:13.5px;color:var(--bleu);list-style:none;display:flex;justify-content:space-between;align-items:center">
+                  <span>📋 Liste 1 — <code style="font-size:13px">Types_Documents</code></span>
+                  <span style="font-size:12px;font-weight:400;color:var(--text-2)">6 colonnes à ajouter ▾</span>
+                </summary>
+                <div style="padding:14px;background:#fff">
+                  <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12.5px">
+                    <tr style="background:#F3F2F1"><th style="text-align:left;padding:7px 10px;border-bottom:1px solid var(--border)">Nom interne</th><th style="text-align:left;padding:7px 10px;border-bottom:1px solid var(--border)">Nom affiché</th><th style="text-align:left;padding:7px 10px;border-bottom:1px solid var(--border)">Type SharePoint</th><th style="text-align:left;padding:7px 10px;border-bottom:1px solid var(--border)">Valeurs / remarques</th></tr>
+                    <tr><td style="padding:6px 10px;border-bottom:1px solid var(--border)"><code>DureeValidite</code></td><td style="padding:6px 10px;border-bottom:1px solid var(--border)">Durée validité (jours)</td><td style="padding:6px 10px;border-bottom:1px solid var(--border)"><span style="background:#E8F5E9;color:#2E7D32;padding:1px 6px;border-radius:4px;font-size:11px">Nombre</span></td><td style="padding:6px 10px;border-bottom:1px solid var(--border);color:var(--text-2)">Entier positif</td></tr>
+                    <tr style="background:#FAFAFA"><td style="padding:6px 10px;border-bottom:1px solid var(--border)"><code>NiveauRattachement</code></td><td style="padding:6px 10px;border-bottom:1px solid var(--border)">Niveau rattachement</td><td style="padding:6px 10px;border-bottom:1px solid var(--border)"><span style="background:#FFF3E0;color:#E65100;padding:1px 6px;border-radius:4px;font-size:11px">Choix</span></td><td style="padding:6px 10px;border-bottom:1px solid var(--border);color:var(--text-2)">Fournisseur · Matière · Fournisseur + Matière</td></tr>
+                    <tr><td style="padding:6px 10px;border-bottom:1px solid var(--border)"><code>AlerteJ90</code></td><td style="padding:6px 10px;border-bottom:1px solid var(--border)">Alerte J-90</td><td style="padding:6px 10px;border-bottom:1px solid var(--border)"><span style="background:#F3E5F5;color:#6A1B9A;padding:1px 6px;border-radius:4px;font-size:11px">Oui/Non</span></td><td style="padding:6px 10px;border-bottom:1px solid var(--border);color:var(--text-2)">Valeur par défaut : Non</td></tr>
+                    <tr style="background:#FAFAFA"><td style="padding:6px 10px;border-bottom:1px solid var(--border)"><code>AlerteJ30</code></td><td style="padding:6px 10px;border-bottom:1px solid var(--border)">Alerte J-30</td><td style="padding:6px 10px;border-bottom:1px solid var(--border)"><span style="background:#F3E5F5;color:#6A1B9A;padding:1px 6px;border-radius:4px;font-size:11px">Oui/Non</span></td><td style="padding:6px 10px;border-bottom:1px solid var(--border);color:var(--text-2)">Valeur par défaut : Non</td></tr>
+                    <tr><td style="padding:6px 10px;border-bottom:1px solid var(--border)"><code>AlerteJ7</code></td><td style="padding:6px 10px;border-bottom:1px solid var(--border)">Alerte J-7</td><td style="padding:6px 10px;border-bottom:1px solid var(--border)"><span style="background:#F3E5F5;color:#6A1B9A;padding:1px 6px;border-radius:4px;font-size:11px">Oui/Non</span></td><td style="padding:6px 10px;border-bottom:1px solid var(--border);color:var(--text-2)">Valeur par défaut : Non</td></tr>
+                    <tr style="background:#FAFAFA"><td style="padding:6px 10px"><code>Obligatoire</code></td><td style="padding:6px 10px">Obligatoire pour approbation</td><td style="padding:6px 10px"><span style="background:#F3E5F5;color:#6A1B9A;padding:1px 6px;border-radius:4px;font-size:11px">Oui/Non</span></td><td style="padding:6px 10px;color:var(--text-2)">Valeur par défaut : Non</td></tr>
+                  </table></div>
+                  <div style="background:var(--bleu-l);border-radius:6px;padding:10px 12px;margin-top:12px;font-size:12.5px">
+                    <strong>Ensuite :</strong> ajouter manuellement les lignes de données (8 types de documents). Voir la section <strong>④ Types de documents</strong> pour les valeurs exactes.
+                  </div>
+                </div>
+              </details>
+
+              <!-- Fournisseurs -->
+              <details style="border:1.5px solid #A5D6A7;border-radius:10px;overflow:hidden">
+                <summary style="background:var(--vert-l);padding:11px 14px;cursor:pointer;font-weight:700;font-size:13.5px;color:#2E7D32;list-style:none;display:flex;justify-content:space-between;align-items:center">
+                  <span>🏢 Liste 2 — <code style="font-size:13px">Fournisseurs</code></span>
+                  <span style="font-size:12px;font-weight:400;color:var(--text-2)">7 colonnes à ajouter ▾</span>
+                </summary>
+                <div style="padding:14px;background:#fff">
+                  <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12.5px">
+                    <tr style="background:#F3F2F1"><th style="text-align:left;padding:7px 10px;border-bottom:1px solid var(--border)">Nom interne</th><th style="text-align:left;padding:7px 10px;border-bottom:1px solid var(--border)">Nom affiché</th><th style="text-align:left;padding:7px 10px;border-bottom:1px solid var(--border)">Type SharePoint</th><th style="text-align:left;padding:7px 10px;border-bottom:1px solid var(--border)">Valeurs / remarques</th></tr>
+                    <tr><td style="padding:6px 10px;border-bottom:1px solid var(--border)"><code>CodeFournisseur</code></td><td style="padding:6px 10px;border-bottom:1px solid var(--border)">Code fournisseur</td><td style="padding:6px 10px;border-bottom:1px solid var(--border)"><span style="background:#E3F2FD;color:#1565C0;padding:1px 6px;border-radius:4px;font-size:11px">Texte</span></td><td style="padding:6px 10px;border-bottom:1px solid var(--border);color:var(--text-2)">Ligne de texte</td></tr>
+                    <tr style="background:#FAFAFA"><td style="padding:6px 10px;border-bottom:1px solid var(--border)"><code>TypeFournisseur</code></td><td style="padding:6px 10px;border-bottom:1px solid var(--border)">Type</td><td style="padding:6px 10px;border-bottom:1px solid var(--border)"><span style="background:#FFF3E0;color:#E65100;padding:1px 6px;border-radius:4px;font-size:11px">Choix</span></td><td style="padding:6px 10px;border-bottom:1px solid var(--border);color:var(--text-2)">Producteur · Broker · Négoce · Façonnier · Distributeur</td></tr>
+                    <tr><td style="padding:6px 10px;border-bottom:1px solid var(--border)"><code>StatutApprobation</code></td><td style="padding:6px 10px;border-bottom:1px solid var(--border)">Statut approbation</td><td style="padding:6px 10px;border-bottom:1px solid var(--border)"><span style="background:#FFF3E0;color:#E65100;padding:1px 6px;border-radius:4px;font-size:11px">Choix</span></td><td style="padding:6px 10px;border-bottom:1px solid var(--border);color:var(--text-2)">En cours d'approbation · Approuvé · Suspendu · Disqualifié</td></tr>
+                    <tr style="background:#FAFAFA"><td style="padding:6px 10px;border-bottom:1px solid var(--border)"><code>EmailContactQualite</code></td><td style="padding:6px 10px;border-bottom:1px solid var(--border)">Email contact qualité</td><td style="padding:6px 10px;border-bottom:1px solid var(--border)"><span style="background:#E3F2FD;color:#1565C0;padding:1px 6px;border-radius:4px;font-size:11px">Texte</span></td><td style="padding:6px 10px;border-bottom:1px solid var(--border);color:var(--text-2)">Ligne de texte</td></tr>
+                    <tr><td style="padding:6px 10px;border-bottom:1px solid var(--border)"><code>ScoreConformite</code></td><td style="padding:6px 10px;border-bottom:1px solid var(--border)">Score conformité (%)</td><td style="padding:6px 10px;border-bottom:1px solid var(--border)"><span style="background:#E8F5E9;color:#2E7D32;padding:1px 6px;border-radius:4px;font-size:11px">Nombre</span></td><td style="padding:6px 10px;border-bottom:1px solid var(--border);color:var(--text-2)">0–100, calculé par Flux 1</td></tr>
+                    <tr style="background:#FAFAFA"><td style="padding:6px 10px;border-bottom:1px solid var(--border)"><code>Pays</code></td><td style="padding:6px 10px;border-bottom:1px solid var(--border)">Pays</td><td style="padding:6px 10px;border-bottom:1px solid var(--border)"><span style="background:#E3F2FD;color:#1565C0;padding:1px 6px;border-radius:4px;font-size:11px">Texte</span></td><td style="padding:6px 10px;border-bottom:1px solid var(--border);color:var(--text-2)">Ligne de texte</td></tr>
+                    <tr><td style="padding:6px 10px"><code>Commentaires</code></td><td style="padding:6px 10px">Commentaires</td><td style="padding:6px 10px"><span style="background:#E3F2FD;color:#1565C0;padding:1px 6px;border-radius:4px;font-size:11px">Texte</span></td><td style="padding:6px 10px;color:var(--text-2)">Plusieurs lignes</td></tr>
+                  </table></div>
+                </div>
+              </details>
+
+              <!-- Matieres_Premieres -->
+              <details style="border:1.5px solid #FFCC80;border-radius:10px;overflow:hidden">
+                <summary style="background:var(--orange-l);padding:11px 14px;cursor:pointer;font-weight:700;font-size:13.5px;color:#E65100;list-style:none;display:flex;justify-content:space-between;align-items:center">
+                  <span>📦 Liste 3 — <code style="font-size:13px">Matieres_Premieres</code> <span style="font-size:11px;font-weight:400">(si niveau Matière actif)</span></span>
+                  <span style="font-size:12px;font-weight:400;color:var(--text-2)">3 colonnes à ajouter ▾</span>
+                </summary>
+                <div style="padding:14px;background:#fff">
+                  <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12.5px">
+                    <tr style="background:#F3F2F1"><th style="text-align:left;padding:7px 10px;border-bottom:1px solid var(--border)">Nom interne</th><th style="text-align:left;padding:7px 10px;border-bottom:1px solid var(--border)">Nom affiché</th><th style="text-align:left;padding:7px 10px;border-bottom:1px solid var(--border)">Type</th><th style="text-align:left;padding:7px 10px;border-bottom:1px solid var(--border)">Valeurs</th></tr>
+                    <tr><td style="padding:6px 10px;border-bottom:1px solid var(--border)"><code>CodeRessource</code></td><td style="padding:6px 10px;border-bottom:1px solid var(--border)">Code ressource</td><td style="padding:6px 10px;border-bottom:1px solid var(--border)"><span style="background:#E3F2FD;color:#1565C0;padding:1px 6px;border-radius:4px;font-size:11px">Texte</span></td><td style="padding:6px 10px;border-bottom:1px solid var(--border);color:var(--text-2)">Ex: 02145</td></tr>
+                    <tr style="background:#FAFAFA"><td style="padding:6px 10px;border-bottom:1px solid var(--border)"><code>Categorie</code></td><td style="padding:6px 10px;border-bottom:1px solid var(--border)">Catégorie</td><td style="padding:6px 10px;border-bottom:1px solid var(--border)"><span style="background:#FFF3E0;color:#E65100;padding:1px 6px;border-radius:4px;font-size:11px">Choix</span></td><td style="padding:6px 10px;border-bottom:1px solid var(--border);color:var(--text-2)">Ingrédient · Emballage · Auxiliaire technologique · Arôme · Additif · Autre</td></tr>
+                    <tr><td style="padding:6px 10px"><code>Criticite</code></td><td style="padding:6px 10px">Criticité</td><td style="padding:6px 10px"><span style="background:#FFF3E0;color:#E65100;padding:1px 6px;border-radius:4px;font-size:11px">Choix</span></td><td style="padding:6px 10px;color:var(--text-2)">Haute · Moyenne · Faible</td></tr>
+                  </table></div>
+                </div>
+              </details>
+
+              <!-- Liens_Fourn_Mat -->
+              <details style="border:1.5px solid #CE93D8;border-radius:10px;overflow:hidden">
+                <summary style="background:var(--violet-l);padding:11px 14px;cursor:pointer;font-weight:700;font-size:13.5px;color:#6A1B9A;list-style:none;display:flex;justify-content:space-between;align-items:center">
+                  <span>🔗 Liste 4 — <code style="font-size:13px">Liens_Fourn_Mat</code> <span style="font-size:11px;font-weight:400">(si niveau Matière actif)</span></span>
+                  <span style="font-size:12px;font-weight:400;color:var(--text-2)">4 colonnes à ajouter ▾</span>
+                </summary>
+                <div style="padding:14px;background:#fff">
+                  <p style="font-size:12.5px;color:var(--text-2);margin:0 0 10px">Cette liste est la table de jonction. Créer <strong>Matieres_Premieres</strong> et <strong>Fournisseurs</strong> avant celle-ci — les colonnes Lookup en dépendent.</p>
+                  <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12.5px">
+                    <tr style="background:#F3F2F1"><th style="text-align:left;padding:7px 10px;border-bottom:1px solid var(--border)">Nom interne</th><th style="text-align:left;padding:7px 10px;border-bottom:1px solid var(--border)">Nom affiché</th><th style="text-align:left;padding:7px 10px;border-bottom:1px solid var(--border)">Type</th><th style="text-align:left;padding:7px 10px;border-bottom:1px solid var(--border)">Valeurs</th></tr>
+                    <tr><td style="padding:6px 10px;border-bottom:1px solid var(--border)"><code>Fournisseur</code></td><td style="padding:6px 10px;border-bottom:1px solid var(--border)">Fournisseur</td><td style="padding:6px 10px;border-bottom:1px solid var(--border)"><span style="background:#FCE4EC;color:#880E4F;padding:1px 6px;border-radius:4px;font-size:11px">Lookup</span></td><td style="padding:6px 10px;border-bottom:1px solid var(--border);color:var(--text-2)">Liste source : <strong>Fournisseurs</strong> → champ Titre</td></tr>
+                    <tr style="background:#FAFAFA"><td style="padding:6px 10px;border-bottom:1px solid var(--border)"><code>MatierePremiere</code></td><td style="padding:6px 10px;border-bottom:1px solid var(--border)">Matière première</td><td style="padding:6px 10px;border-bottom:1px solid var(--border)"><span style="background:#FCE4EC;color:#880E4F;padding:1px 6px;border-radius:4px;font-size:11px">Lookup</span></td><td style="padding:6px 10px;border-bottom:1px solid var(--border);color:var(--text-2)">Liste source : <strong>Matieres_Premieres</strong> → champ Titre</td></tr>
+                    <tr><td style="padding:6px 10px;border-bottom:1px solid var(--border)"><code>StatutLien</code></td><td style="padding:6px 10px;border-bottom:1px solid var(--border)">Statut du lien</td><td style="padding:6px 10px;border-bottom:1px solid var(--border)"><span style="background:#FFF3E0;color:#E65100;padding:1px 6px;border-radius:4px;font-size:11px">Choix</span></td><td style="padding:6px 10px;border-bottom:1px solid var(--border);color:var(--text-2)">En approbation · Actif · Inactif · Suspendu</td></tr>
+                    <tr style="background:#FAFAFA"><td style="padding:6px 10px"><code>RefOA</code></td><td style="padding:6px 10px">Référence OA</td><td style="padding:6px 10px"><span style="background:#E3F2FD;color:#1565C0;padding:1px 6px;border-radius:4px;font-size:11px">Texte</span></td><td style="padding:6px 10px;color:var(--text-2)">Ligne de texte, facultatif</td></tr>
+                  </table></div>
+                </div>
+              </details>
+
+              <!-- Documents -->
+              <details style="border:1.5px solid #F48FB1;border-radius:10px;overflow:hidden">
+                <summary style="background:#FCE4EC;padding:11px 14px;cursor:pointer;font-weight:700;font-size:13.5px;color:#880E4F;list-style:none;display:flex;justify-content:space-between;align-items:center">
+                  <span>📄 Liste 5 — <code style="font-size:13px">Documents</code> <span style="font-size:11px;font-weight:400">(liste centrale — créer en dernier)</span></span>
+                  <span style="font-size:12px;font-weight:400;color:var(--text-2)">15 colonnes à ajouter ▾</span>
+                </summary>
+                <div style="padding:14px;background:#fff">
+                  <p style="font-size:12.5px;color:var(--text-2);margin:0 0 10px">⚠️ Créer toutes les autres listes <strong>avant</strong> celle-ci — les colonnes Lookup en ont besoin. Activer le <strong>versioning</strong> sur cette liste (Paramètres → Paramètres de version → Activer le versioning des versions majeures → 50 versions).</p>
+                  <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12.5px">
+                    <tr style="background:#F3F2F1"><th style="text-align:left;padding:7px 10px;border-bottom:1px solid var(--border)">Nom interne</th><th style="text-align:left;padding:7px 10px;border-bottom:1px solid var(--border)">Nom affiché</th><th style="text-align:left;padding:7px 10px;border-bottom:1px solid var(--border)">Type</th><th style="text-align:left;padding:7px 10px;border-bottom:1px solid var(--border)">Valeurs</th></tr>
+                    <tr><td style="padding:5px 10px;border-bottom:1px solid var(--border)"><code>TypeDocument</code></td><td style="padding:5px 10px;border-bottom:1px solid var(--border)">Type de document</td><td style="padding:5px 10px;border-bottom:1px solid var(--border)"><span style="background:#FCE4EC;color:#880E4F;padding:1px 6px;border-radius:4px;font-size:11px">Lookup</span></td><td style="padding:5px 10px;border-bottom:1px solid var(--border);color:var(--text-2)">→ <strong>Types_Documents</strong> / Titre</td></tr>
+                    <tr style="background:#FAFAFA"><td style="padding:5px 10px;border-bottom:1px solid var(--border)"><code>Fournisseur</code></td><td style="padding:5px 10px;border-bottom:1px solid var(--border)">Fournisseur</td><td style="padding:5px 10px;border-bottom:1px solid var(--border)"><span style="background:#FCE4EC;color:#880E4F;padding:1px 6px;border-radius:4px;font-size:11px">Lookup</span></td><td style="padding:5px 10px;border-bottom:1px solid var(--border);color:var(--text-2)">→ <strong>Fournisseurs</strong> / Titre</td></tr>
+                    <tr><td style="padding:5px 10px;border-bottom:1px solid var(--border)"><code>MatierePremiere</code></td><td style="padding:5px 10px;border-bottom:1px solid var(--border)">Matière première</td><td style="padding:5px 10px;border-bottom:1px solid var(--border)"><span style="background:#FCE4EC;color:#880E4F;padding:1px 6px;border-radius:4px;font-size:11px">Lookup</span></td><td style="padding:5px 10px;border-bottom:1px solid var(--border);color:var(--text-2)">→ <strong>Matieres_Premieres</strong> / Titre (optionnel si niveau Fourn. seul)</td></tr>
+                    <tr style="background:#FAFAFA"><td style="padding:5px 10px;border-bottom:1px solid var(--border)"><code>LienFournMat</code></td><td style="padding:5px 10px;border-bottom:1px solid var(--border)">Lien Fourn×Mat</td><td style="padding:5px 10px;border-bottom:1px solid var(--border)"><span style="background:#FCE4EC;color:#880E4F;padding:1px 6px;border-radius:4px;font-size:11px">Lookup</span></td><td style="padding:5px 10px;border-bottom:1px solid var(--border);color:var(--text-2)">→ <strong>Liens_Fourn_Mat</strong> / Titre (optionnel si niveau Fourn. seul)</td></tr>
+                    <tr><td style="padding:5px 10px;border-bottom:1px solid var(--border)"><code>Statut</code></td><td style="padding:5px 10px;border-bottom:1px solid var(--border)">Statut</td><td style="padding:5px 10px;border-bottom:1px solid var(--border)"><span style="background:#FFF3E0;color:#E65100;padding:1px 6px;border-radius:4px;font-size:11px">Choix</span></td><td style="padding:5px 10px;border-bottom:1px solid var(--border);color:var(--text-2)">Manquant · En attente de validation · Valide · Expire bientôt · Expiré · Obsolète</td></tr>
+                    <tr style="background:#FAFAFA"><td style="padding:5px 10px;border-bottom:1px solid var(--border)"><code>DateEmission</code></td><td style="padding:5px 10px;border-bottom:1px solid var(--border)">Date d'émission</td><td style="padding:5px 10px;border-bottom:1px solid var(--border)"><span style="background:#E0F7FA;color:#006064;padding:1px 6px;border-radius:4px;font-size:11px">Date</span></td><td style="padding:5px 10px;border-bottom:1px solid var(--border);color:var(--text-2)">Format Date uniquement</td></tr>
+                    <tr><td style="padding:5px 10px;border-bottom:1px solid var(--border)"><code>DateExpiration</code></td><td style="padding:5px 10px;border-bottom:1px solid var(--border)">Date d'expiration</td><td style="padding:5px 10px;border-bottom:1px solid var(--border)"><span style="background:#E0F7FA;color:#006064;padding:1px 6px;border-radius:4px;font-size:11px">Date</span></td><td style="padding:5px 10px;border-bottom:1px solid var(--border);color:var(--text-2)">Calculée automatiquement par Flux 4</td></tr>
+                    <tr style="background:#FAFAFA"><td style="padding:5px 10px;border-bottom:1px solid var(--border)"><code>DateReception</code></td><td style="padding:5px 10px;border-bottom:1px solid var(--border)">Date de réception</td><td style="padding:5px 10px;border-bottom:1px solid var(--border)"><span style="background:#E0F7FA;color:#006064;padding:1px 6px;border-radius:4px;font-size:11px">Date</span></td><td style="padding:5px 10px;border-bottom:1px solid var(--border);color:var(--text-2)">Format Date uniquement</td></tr>
+                    <tr><td style="padding:5px 10px;border-bottom:1px solid var(--border)"><code>DateValidation</code></td><td style="padding:5px 10px;border-bottom:1px solid var(--border)">Date de validation</td><td style="padding:5px 10px;border-bottom:1px solid var(--border)"><span style="background:#E0F7FA;color:#006064;padding:1px 6px;border-radius:4px;font-size:11px">Date</span></td><td style="padding:5px 10px;border-bottom:1px solid var(--border);color:var(--text-2)">Format Date uniquement</td></tr>
+                    <tr style="background:#FAFAFA"><td style="padding:5px 10px;border-bottom:1px solid var(--border)"><code>ValidePar</code></td><td style="padding:5px 10px;border-bottom:1px solid var(--border)">Validé par</td><td style="padding:5px 10px;border-bottom:1px solid var(--border)"><span style="background:#E8EAF6;color:#283593;padding:1px 6px;border-radius:4px;font-size:11px">Personne</span></td><td style="padding:5px 10px;border-bottom:1px solid var(--border);color:var(--text-2)">Utilisateur Microsoft 365</td></tr>
+                    <tr><td style="padding:5px 10px;border-bottom:1px solid var(--border)"><code>Conformite</code></td><td style="padding:5px 10px;border-bottom:1px solid var(--border)">Conformité</td><td style="padding:5px 10px;border-bottom:1px solid var(--border)"><span style="background:#FFF3E0;color:#E65100;padding:1px 6px;border-radius:4px;font-size:11px">Choix</span></td><td style="padding:5px 10px;border-bottom:1px solid var(--border);color:var(--text-2)">Conforme · Non conforme · En attente</td></tr>
+                    <tr style="background:#FAFAFA"><td style="padding:5px 10px;border-bottom:1px solid var(--border)"><code>Version</code></td><td style="padding:5px 10px;border-bottom:1px solid var(--border)">Version</td><td style="padding:5px 10px;border-bottom:1px solid var(--border)"><span style="background:#E8F5E9;color:#2E7D32;padding:1px 6px;border-radius:4px;font-size:11px">Nombre</span></td><td style="padding:5px 10px;border-bottom:1px solid var(--border);color:var(--text-2)">Géré par Flux 4</td></tr>
+                    <tr><td style="padding:5px 10px;border-bottom:1px solid var(--border)"><code>DocumentCourant</code></td><td style="padding:5px 10px;border-bottom:1px solid var(--border)">Document courant</td><td style="padding:5px 10px;border-bottom:1px solid var(--border)"><span style="background:#F3E5F5;color:#6A1B9A;padding:1px 6px;border-radius:4px;font-size:11px">Oui/Non</span></td><td style="padding:5px 10px;border-bottom:1px solid var(--border);color:var(--text-2)">Seul le document actif = Oui. Géré par Flux 4.</td></tr>
+                    <tr style="background:#FAFAFA"><td style="padding:5px 10px;border-bottom:1px solid var(--border)"><code>LienFichier</code></td><td style="padding:5px 10px;border-bottom:1px solid var(--border)">Lien vers fichier</td><td style="padding:5px 10px;border-bottom:1px solid var(--border)"><span style="background:#E8F5E9;color:#2E7D32;padding:1px 6px;border-radius:4px;font-size:11px">URL</span></td><td style="padding:5px 10px;border-bottom:1px solid var(--border);color:var(--text-2)">Lien hypertexte vers Documents_Fichiers</td></tr>
+                    <tr><td style="padding:5px 10px"><code>Commentaires</code></td><td style="padding:5px 10px">Commentaires</td><td style="padding:5px 10px"><span style="background:#E3F2FD;color:#1565C0;padding:1px 6px;border-radius:4px;font-size:11px">Texte</span></td><td style="padding:5px 10px;color:var(--text-2)">Plusieurs lignes</td></tr>
+                  </table></div>
+                </div>
+              </details>
+
+              <!-- Analyse_Fraude -->
+              <details style="border:1.5px solid #CFD8DC;border-radius:10px;overflow:hidden">
+                <summary style="background:var(--gris-l);padding:11px 14px;cursor:pointer;font-weight:700;font-size:13.5px;color:var(--text-1);list-style:none;display:flex;justify-content:space-between;align-items:center">
+                  <span>🔒 Liste 6 — <code style="font-size:13px">Analyse_Fraude</code> <span style="font-size:11px;font-weight:400">(accès restreint)</span></span>
+                  <span style="font-size:12px;font-weight:400;color:var(--text-2)">8 colonnes à ajouter ▾</span>
+                </summary>
+                <div style="padding:14px;background:#fff">
+                  <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12.5px">
+                    <tr style="background:#F3F2F1"><th style="text-align:left;padding:7px 10px;border-bottom:1px solid var(--border)">Nom interne</th><th style="text-align:left;padding:7px 10px;border-bottom:1px solid var(--border)">Nom affiché</th><th style="text-align:left;padding:7px 10px;border-bottom:1px solid var(--border)">Type</th><th style="text-align:left;padding:7px 10px;border-bottom:1px solid var(--border)">Valeurs</th></tr>
+                    <tr><td style="padding:5px 10px;border-bottom:1px solid var(--border)"><code>LienFournMat</code></td><td style="padding:5px 10px;border-bottom:1px solid var(--border)">Lien Fourn×Mat</td><td style="padding:5px 10px;border-bottom:1px solid var(--border)"><span style="background:#FCE4EC;color:#880E4F;padding:1px 6px;border-radius:4px;font-size:11px">Lookup</span></td><td style="padding:5px 10px;border-bottom:1px solid var(--border);color:var(--text-2)">→ <strong>Liens_Fourn_Mat</strong> / Titre (ou Fournisseurs si niveau Fourn. seul)</td></tr>
+                    <tr style="background:#FAFAFA"><td style="padding:5px 10px;border-bottom:1px solid var(--border)"><code>ParametreAnalyse</code></td><td style="padding:5px 10px;border-bottom:1px solid var(--border)">Paramètre analysé</td><td style="padding:5px 10px;border-bottom:1px solid var(--border)"><span style="background:#E3F2FD;color:#1565C0;padding:1px 6px;border-radius:4px;font-size:11px">Texte</span></td><td style="padding:5px 10px;border-bottom:1px solid var(--border);color:var(--text-2)">Ligne de texte</td></tr>
+                    <tr><td style="padding:5px 10px;border-bottom:1px solid var(--border)"><code>ScoreHistorique</code></td><td style="padding:5px 10px;border-bottom:1px solid var(--border)">Score historique (0-5)</td><td style="padding:5px 10px;border-bottom:1px solid var(--border)"><span style="background:#E8F5E9;color:#2E7D32;padding:1px 6px;border-radius:4px;font-size:11px">Nombre</span></td><td style="padding:5px 10px;border-bottom:1px solid var(--border);color:var(--text-2)">0–5</td></tr>
+                    <tr style="background:#FAFAFA"><td style="padding:5px 10px;border-bottom:1px solid var(--border)"><code>ScoreMarche</code></td><td style="padding:5px 10px;border-bottom:1px solid var(--border)">Score marché (0-5)</td><td style="padding:5px 10px;border-bottom:1px solid var(--border)"><span style="background:#E8F5E9;color:#2E7D32;padding:1px 6px;border-radius:4px;font-size:11px">Nombre</span></td><td style="padding:5px 10px;border-bottom:1px solid var(--border);color:var(--text-2)">0–5</td></tr>
+                    <tr><td style="padding:5px 10px;border-bottom:1px solid var(--border)"><code>ScoreOrigine</code></td><td style="padding:5px 10px;border-bottom:1px solid var(--border)">Score origine (0-5)</td><td style="padding:5px 10px;border-bottom:1px solid var(--border)"><span style="background:#E8F5E9;color:#2E7D32;padding:1px 6px;border-radius:4px;font-size:11px">Nombre</span></td><td style="padding:5px 10px;border-bottom:1px solid var(--border);color:var(--text-2)">0–5</td></tr>
+                    <tr style="background:#FAFAFA"><td style="padding:5px 10px;border-bottom:1px solid var(--border)"><code>ScoreProduit</code></td><td style="padding:5px 10px;border-bottom:1px solid var(--border)">Score produit (0-5)</td><td style="padding:5px 10px;border-bottom:1px solid var(--border)"><span style="background:#E8F5E9;color:#2E7D32;padding:1px 6px;border-radius:4px;font-size:11px">Nombre</span></td><td style="padding:5px 10px;border-bottom:1px solid var(--border);color:var(--text-2)">0–5</td></tr>
+                    <tr><td style="padding:5px 10px;border-bottom:1px solid var(--border)"><code>ProbabiliteFraude</code></td><td style="padding:5px 10px;border-bottom:1px solid var(--border)">Probabilité fraude</td><td style="padding:5px 10px;border-bottom:1px solid var(--border)"><span style="background:#FFF3E0;color:#E65100;padding:1px 6px;border-radius:4px;font-size:11px">Choix</span></td><td style="padding:5px 10px;border-bottom:1px solid var(--border);color:var(--text-2)">Improbable · Possible · Probable</td></tr>
+                    <tr style="background:#FAFAFA"><td style="padding:5px 10px"><code>NoteCriticite</code></td><td style="padding:5px 10px">Note criticité</td><td style="padding:5px 10px"><span style="background:#FFF3E0;color:#E65100;padding:1px 6px;border-radius:4px;font-size:11px">Choix</span></td><td style="padding:5px 10px;color:var(--text-2)">A - Prioritaire · B - Surveillance · C - Standard</td></tr>
+                  </table></div>
+                  <div style="background:#FFF3E0;border-radius:6px;padding:10px 12px;margin-top:12px;font-size:12.5px;border-left:3px solid var(--orange)">
+                    ⚠️ Après création : Paramètres de la liste → <strong>Autorisations pour cette liste</strong> → <strong>Arrêter l'héritage des autorisations</strong>. Puis ajouter manuellement les groupes Qualité et Achats.
+                  </div>
+                </div>
+              </details>
+
+            </div><!-- /flex listes -->
+          </div>
+        </div>
+
+        <!-- ══ M3 — Créer la bibliothèque ══════════════════════════════ -->
+        <div style="border:2px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:20px">
+          <div style="background:#00695C;color:#fff;padding:12px 18px;display:flex;align-items:center;gap:10px">
+            <span style="width:28px;height:28px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;flex-shrink:0">M3</span>
+            <span style="font-weight:700;font-size:15px">Créer la bibliothèque de documents</span>
+            <span style="margin-left:auto;font-size:12px;opacity:.8">⏱ 5 min</span>
+          </div>
+          <div style="padding:16px 18px;display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;flex-direction:column;gap:7px;font-size:13.5px">
+              <div style="display:flex;gap:8px;align-items:flex-start"><span style="background:#00695C;color:#fff;border-radius:50%;min-width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;margin-top:1px">1</span><span>Sur le site → <strong>+ Nouveau</strong> → <strong>Bibliothèque de documents</strong></span></div>
+              <div style="display:flex;gap:8px;align-items:flex-start"><span style="background:#00695C;color:#fff;border-radius:50%;min-width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;margin-top:1px">2</span><span>Nom : <code style="background:#F3F2F1;padding:1px 5px;border-radius:3px;font-size:12px">Documents_Fichiers</code> → <strong>Créer</strong></span></div>
+              <div style="display:flex;gap:8px;align-items:flex-start"><span style="background:#00695C;color:#fff;border-radius:50%;min-width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;margin-top:1px">3</span><span>Paramètres de la bibliothèque → <strong>Paramètres de version</strong> → activer <strong>Versioning des versions majeures</strong> → conserver <strong>50 versions</strong></span></div>
+              <div style="display:flex;gap:8px;align-items:flex-start"><span style="background:#00695C;color:#fff;border-radius:50%;min-width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;margin-top:1px">4</span><span>Créer manuellement les dossiers par fournisseur (ex: <code style="background:#F3F2F1;padding:1px 4px;border-radius:3px;font-size:11px">FOURNISSEUR_01</code>, <code style="background:#F3F2F1;padding:1px 4px;border-radius:3px;font-size:11px">FOURNISSEUR_02</code>…). Sous chaque dossier fournisseur, créer des sous-dossiers par type de document.</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ M4 — Créer les vues filtrées ════════════════════════════ -->
+        <div style="border:2px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:20px">
+          <div style="background:#1565C0;color:#fff;padding:12px 18px;display:flex;align-items:center;gap:10px">
+            <span style="width:28px;height:28px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;flex-shrink:0">M4</span>
+            <span style="font-weight:700;font-size:15px">Créer les vues filtrées dans la liste Documents</span>
+            <span style="margin-left:auto;font-size:12px;opacity:.8">⏱ 10 min</span>
+          </div>
+          <div style="padding:16px 18px">
+            <p style="font-size:13.5px;color:var(--text-2);margin:0 0 12px">Aller dans la liste <strong>Documents</strong> → <strong>Toutes les vues</strong> (bouton en haut à droite) → <strong>+ Créer une vue</strong> → choisir <strong>Vue standard</strong>.</p>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden">
+                <div style="background:#FFEBEE;padding:9px 12px;font-weight:700;font-size:13px;color:#C62828">Vue "Expirés"</div>
+                <div style="padding:10px 12px;font-size:13px;display:flex;flex-direction:column;gap:4px">
+                  <div>Filtre : <code style="background:#F3F2F1;padding:1px 5px;border-radius:3px;font-size:12px">DocumentCourant = Oui</code> <strong>ET</strong> <code style="background:#F3F2F1;padding:1px 5px;border-radius:3px;font-size:12px">Statut = Expiré</code></div>
+                  <div>Trier par : <code style="background:#F3F2F1;padding:1px 5px;border-radius:3px;font-size:12px">DateExpiration</code> croissant</div>
+                  <div style="font-size:12px;color:var(--text-2)">Colonnes : Titre, Fournisseur, TypeDocument, DateExpiration, Statut, Conformite</div>
+                </div>
+              </div>
+              <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden">
+                <div style="background:#FFF3E0;padding:9px 12px;font-weight:700;font-size:13px;color:#E65100">Vue "Expire bientôt"</div>
+                <div style="padding:10px 12px;font-size:13px;display:flex;flex-direction:column;gap:4px">
+                  <div>Filtre : <code style="background:#F3F2F1;padding:1px 5px;border-radius:3px;font-size:12px">DocumentCourant = Oui</code> <strong>ET</strong> <code style="background:#F3F2F1;padding:1px 5px;border-radius:3px;font-size:12px">Statut = Expire bientôt</code></div>
+                  <div>Trier par : <code style="background:#F3F2F1;padding:1px 5px;border-radius:3px;font-size:12px">DateExpiration</code> croissant</div>
+                </div>
+              </div>
+              <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden">
+                <div style="background:#E8F5E9;padding:9px 12px;font-weight:700;font-size:13px;color:#2E7D32">Vue "En attente validation"</div>
+                <div style="padding:10px 12px;font-size:13px;display:flex;flex-direction:column;gap:4px">
+                  <div>Filtre : <code style="background:#F3F2F1;padding:1px 5px;border-radius:3px;font-size:12px">Statut = En attente de validation</code></div>
+                  <div>Trier par : <code style="background:#F3F2F1;padding:1px 5px;border-radius:3px;font-size:12px">DateReception</code> décroissant</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ M5 — Configurer les flux ════════════════════════════════ -->
+        <div style="border:2px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:20px">
+          <div style="background:#4527A0;color:#fff;padding:12px 18px;display:flex;align-items:center;gap:10px">
+            <span style="width:28px;height:28px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;flex-shrink:0">M5</span>
+            <span style="font-weight:700;font-size:15px">Configurer les flux Power Automate</span>
+            <span style="margin-left:auto;font-size:12px;opacity:.8">⏱ 45 min à 1h</span>
+          </div>
+          <div style="padding:16px 18px">
+            <p style="font-size:13.5px;color:var(--text-2);margin:0 0 12px">La configuration des flux Power Automate est identique en mode manuel et en mode script. Se reporter à l'<strong>Étape D</strong> du mode Script (D1 → D4) — cette partie ne change pas.</p>
+            <div style="background:var(--bleu-l);border-radius:8px;padding:10px 14px;font-size:13px;border-left:3px solid var(--bleu)">
+              💡 Basculer sur l'onglet <strong>⚡ Mode Script</strong> et aller directement à la section <strong>Étape D</strong> pour les instructions complètes d'import des 7 flux.
+            </div>
+          </div>
+        </div>
+
+        <!-- Checklist mode manuel -->
+        <div class="callout" style="background:var(--success-l);border-left:3px solid var(--success);margin-top:4px">
+          <span class="co-icon">☑️</span>
+          <div>
+            <strong>Checklist de fin — Mode Manuel</strong>
+            <ul style="margin:4px 0 0 0;padding-left:16px;font-size:13px;display:flex;flex-direction:column;gap:2px;list-style:none">
+              <li>☐ 6 listes visibles dans SharePoint (+ Analyse_Fraude dans Contenu du site)</li>
+              <li>☐ Bibliothèque Documents_Fichiers créée avec versioning 50 actif</li>
+              <li>☐ Liste Types_Documents : 8 types de documents saisis manuellement</li>
+              <li>☐ 3 vues filtrées créées dans la liste Documents</li>
+              <li>☐ 7 flux Power Automate actifs (statut = Activé)</li>
+              <li>☐ Permissions Analyse_Fraude configurées (héritage coupé)</li>
+            </ul>
+          </div>
+        </div>
+
+      </div><!-- /mode-manuel -->
+
     </div>
   </div>
 
@@ -2243,9 +2617,48 @@ table.info-table tr:hover td { background: var(--overlay); }
     </div>
   </div>
 
-  <!-- ÉTAPE 3 : Types de documents (la grande table) -->
+  <!-- ÉTAPE 3 : Niveaux de suivi -->
   <div class="card">
-    <h2 class="block-title" style="margin-bottom:6px">③ Types de documents — Le cœur de la configuration</h2>
+    <h2 class="block-title" style="margin-bottom:6px">③ Niveaux de suivi documentaire — La décision structurante</h2>
+    <p class="para" style="margin-bottom:16px">Avant de configurer les types de documents, il faut choisir jusqu'où va le suivi. C'est la décision qui détermine quelles listes SharePoint sont créées et quels flux sont nécessaires.</p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+
+      <div style="background:var(--bleu-l);border:2px solid #90CAF9;border-radius:12px;padding:18px">
+        <div style="font-weight:900;font-size:15px;margin-bottom:6px;color:var(--bleu)">Niveau Fournisseur seul</div>
+        <div style="font-size:13px;color:var(--text-2);margin-bottom:10px">On suit les documents <strong>par fournisseur</strong>, indépendamment des matières achetées chez lui.</div>
+        <div style="font-size:12.5px;display:flex;flex-direction:column;gap:4px;margin-bottom:10px">
+          <div>✓ Certificat IFS/BRC, questionnaire annuel…</div>
+          <div>✓ Simple à mettre en place, adapté aux petites structures</div>
+          <div style="color:#888">✗ Pas de suivi par ingrédient spécifique</div>
+        </div>
+        <div style="background:#fff;border-radius:6px;padding:8px 10px;font-size:11.5px;font-family:'Courier New',monospace;color:#1565C0">"niveaux_actifs": ["Fournisseur"]</div>
+        <div style="font-size:11.5px;color:var(--text-3);margin-top:6px">→ Listes créées : 5 listes + biblio<br>→ Flux nécessaires : 1–6 (pas Flux 7)</div>
+      </div>
+
+      <div style="background:var(--vert-l);border:2px solid #A5D6A7;border-radius:12px;padding:18px">
+        <div style="font-weight:900;font-size:15px;margin-bottom:6px;color:#2E7D32">Niveau Fournisseur + Matière</div>
+        <div style="font-size:13px;color:var(--text-2);margin-bottom:10px">On suit les documents <strong>par source d'approvisionnement</strong> : chaque couple Fournisseur × Matière a sa propre fiche documentaire.</div>
+        <div style="font-size:12.5px;display:flex;flex-direction:column;gap:4px;margin-bottom:10px">
+          <div>✓ Fiche Technique, CDC, déclarations allergènes par source</div>
+          <div>✓ Obligatoire pour IFS/BRC/FSSC22000 complet</div>
+          <div>✓ Traçabilité totale par ingrédient</div>
+        </div>
+        <div style="background:#fff;border-radius:6px;padding:8px 10px;font-size:11.5px;font-family:'Courier New',monospace;color:#1B5E20">"niveaux_actifs": ["Fournisseur", "Matière",<br>&nbsp;"Fournisseur + Matière"]</div>
+        <div style="font-size:11.5px;color:var(--text-3);margin-top:6px">→ Listes créées : 7 objets complets<br>→ Flux nécessaires : 1–7</div>
+      </div>
+
+    </div>
+
+    <div class="callout warn">
+      <div class="co-icon"><i data-lucide="info"></i></div>
+      <p>Cette clé se configure dans le fichier <code style="font-size:12px;background:#F3F2F1;padding:1px 5px;border-radius:3px">config/[client].json</code> avant de lancer le script de déploiement. Le script lit cette valeur et crée uniquement les listes nécessaires. <strong>Pas de suppression possible après coup sans réinstallation</strong> — choisir le bon niveau dès le départ.</p>
+    </div>
+  </div>
+
+  <!-- ÉTAPE 4 : Types de documents (la grande table) -->
+  <div class="card">
+    <h2 class="block-title" style="margin-bottom:6px">④ Types de documents — Le cœur de la configuration</h2>
     <p class="para" style="margin-bottom:4px">C'est ici que tout se joue. Pour chaque type de document, on définit <strong>exactement</strong> ses règles : à qui il s'applique, combien de temps il est valable, quand on alerte, s'il est obligatoire.</p>
     <p class="para" style="margin-bottom:16px">Ces règles sont ensuite lues automatiquement par le système. <strong>Aucun calcul manuel.</strong></p>
 
@@ -2332,9 +2745,9 @@ table.info-table tr:hover td { background: var(--overlay); }
     </div>
   </div>
 
-  <!-- ÉTAPE 4 : Colonnes d'un document -->
+  <!-- ÉTAPE 5 : Colonnes d'un document -->
   <div class="card">
-    <h2 class="block-title" style="margin-bottom:6px">④ Les colonnes de chaque document — Ce qu'on enregistre</h2>
+    <h2 class="block-title" style="margin-bottom:6px">⑤ Les colonnes de chaque document — Ce qu'on enregistre</h2>
     <p class="para" style="margin-bottom:16px">Pour chaque document enregistré dans la plateforme, voici les informations conservées. Certaines sont remplies manuellement, d'autres sont calculées automatiquement.</p>
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px">
@@ -2433,9 +2846,9 @@ table.info-table tr:hover td { background: var(--overlay); }
     </div>
   </div>
 
-  <!-- ÉTAPE 5 : Exemple concret -->
+  <!-- ÉTAPE 6 : Exemple concret -->
   <div class="card">
-    <h2 class="block-title" style="margin-bottom:16px">⑤ Exemple concret — Fiche d'un document dans la plateforme</h2>
+    <h2 class="block-title" style="margin-bottom:16px">⑥ Exemple concret — Fiche d'un document dans la plateforme</h2>
     <div style="background:var(--bleu-xl);border:2px solid #90CAF9;border-radius:14px;padding:24px;font-family:'Segoe UI',sans-serif">
       <div style="font-size:13px;color:var(--bleu);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px">📄 Fiche document — Exemple réel</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
@@ -4020,6 +4433,33 @@ table.info-table tr:hover td { background: var(--overlay); }
     }
     document.getElementById('tp' + n).classList.add('active');
     document.getElementById('tc' + n).classList.add('active');
+    lucide.createIcons();
+  }
+
+  function switchMode(mode) {
+    const scriptEl  = document.getElementById('mode-script');
+    const manuelEl  = document.getElementById('mode-manuel');
+    const btnScript = document.getElementById('btn-mode-script');
+    const btnManuel = document.getElementById('btn-mode-manuel');
+    if (mode === 'script') {
+      scriptEl.style.display = 'block';
+      manuelEl.style.display = 'none';
+      btnScript.style.background = 'var(--bleu)';
+      btnScript.style.color = '#fff';
+      btnScript.style.boxShadow = '0 2px 6px rgba(0,0,0,.15)';
+      btnManuel.style.background = 'transparent';
+      btnManuel.style.color = 'var(--text-2)';
+      btnManuel.style.boxShadow = 'none';
+    } else {
+      scriptEl.style.display = 'none';
+      manuelEl.style.display = 'block';
+      btnManuel.style.background = 'var(--orange)';
+      btnManuel.style.color = '#fff';
+      btnManuel.style.boxShadow = '0 2px 6px rgba(0,0,0,.15)';
+      btnScript.style.background = 'transparent';
+      btnScript.style.color = 'var(--text-2)';
+      btnScript.style.boxShadow = 'none';
+    }
     lucide.createIcons();
   }
 </script>
