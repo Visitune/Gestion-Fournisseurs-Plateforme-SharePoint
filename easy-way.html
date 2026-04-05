@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La voie simple — Gestion Fournisseurs par email</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+:root {
+  --primary:  #0F172A;
+  --accent:   #2563EB;  --accent-l: #DBEAFE;
+  --green:    #16A34A;  --green-l:  #DCFCE7;
+  --orange:   #D97706;  --orange-l: #FEF3C7;
+  --violet:   #7C3AED;  --violet-l: #EDE9FE;
+  --red:      #DC2626;  --red-l:    #FEE2E2;
+  --text-1:   #0F172A;
+  --text-2:   #475569;
+  --text-3:   #94A3B8;
+  --border:   #E2E8F0;
+  --bg:       #F8FAFC;
+  --card:     #FFFFFF;
+  --font-display: 'Outfit', sans-serif;
+  --font-body:    'Inter', sans-serif;
+  --shadow-sm: 0 1px 3px rgba(15,23,42,.06);
+  --shadow-md: 0 4px 16px rgba(15,23,42,.08);
+  --shadow-lg: 0 20px 40px rgba(15,23,42,.12);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text-1);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+h1,h2,h3,h4 { font-family: var(--font-display); font-weight: 700; line-height: 1.2; }
+
+/* ── NAV ─────────────────────────────────────────────────── */
+.topnav {
+  background: var(--primary);
+  padding: 14px 48px;
+  display: flex; align-items: center; gap: 16px;
+  position: sticky; top: 0; z-index: 100;
+}
+.topnav-logo { display: flex; align-items: center; gap: 10px; }
+.logo-mark { width: 32px; height: 32px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+.logo-mark svg { width: 16px; height: 16px; color: #fff; }
+.logo-text { font-family: var(--font-display); font-weight: 800; font-size: 14px; color: #fff; }
+.topnav-back { margin-left: auto; display: flex; align-items: center; gap: 6px; color: rgba(255,255,255,.6); font-size: 13px; text-decoration: none; padding: 6px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,.1); transition: all .15s; }
+.topnav-back:hover { color: #fff; border-color: rgba(255,255,255,.3); background: rgba(255,255,255,.06); }
+
+/* ── HERO ─────────────────────────────────────────────────── */
+.hero {
+  background: linear-gradient(135deg, #0F172A 0%, #1E3A5F 60%, #0F172A 100%);
+  padding: 72px 48px 80px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 50% 100%, rgba(37,99,235,.2) 0%, transparent 70%);
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.15);
+  color: rgba(255,255,255,.85); font-size: 12.5px; font-weight: 600;
+  padding: 5px 14px; border-radius: 99px; margin-bottom: 24px;
+  backdrop-filter: blur(8px);
+}
+.hero h1 { font-size: clamp(32px, 5vw, 52px); color: #fff; margin-bottom: 16px; position: relative; }
+.hero h1 span { color: #60A5FA; }
+.hero-sub { font-size: 18px; color: rgba(255,255,255,.65); max-width: 620px; margin: 0 auto 40px; position: relative; }
+.hero-compare {
+  display: inline-flex; gap: 0; border-radius: 12px; overflow: hidden;
+  border: 1px solid rgba(255,255,255,.1); position: relative;
+}
+.hero-compare-item { padding: 16px 32px; font-size: 14px; font-weight: 600; }
+.hero-compare-item.before { background: rgba(220,38,38,.15); color: #FCA5A5; border-right: 1px solid rgba(255,255,255,.1); }
+.hero-compare-item.after  { background: rgba(22,163,74,.2); color: #86EFAC; }
+.hero-compare-item small { display: block; font-size: 11px; font-weight: 400; opacity: .8; margin-top: 2px; }
+
+/* ── LAYOUT ───────────────────────────────────────────────── */
+.page { max-width: 1100px; margin: 0 auto; padding: 64px 48px; }
+.section { margin-bottom: 72px; }
+.section-label {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em;
+  color: var(--accent); margin-bottom: 12px;
+}
+.section-title { font-size: 28px; margin-bottom: 8px; }
+.section-sub { font-size: 16px; color: var(--text-2); max-width: 640px; margin-bottom: 36px; }
+
+/* ── CARDS ────────────────────────────────────────────────── */
+.card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 16px; padding: 28px; box-shadow: var(--shadow-sm);
+}
+.card-elevated { box-shadow: var(--shadow-md); }
+
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+
+/* ── FLOW DIAGRAM ─────────────────────────────────────────── */
+.flow {
+  display: flex; align-items: stretch; gap: 0;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 20px; overflow: hidden; box-shadow: var(--shadow-md);
+}
+.flow-step {
+  flex: 1; padding: 28px 24px; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  position: relative;
+}
+.flow-step:not(:last-child)::after {
+  content: '';
+  position: absolute; right: -1px; top: 20%; bottom: 20%;
+  width: 1px; background: var(--border);
+}
+.flow-step-icon {
+  width: 52px; height: 52px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+}
+.flow-step-num {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--accent); color: #fff;
+  font-size: 11px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  position: absolute; top: 18px; right: 18px;
+}
+.flow-arrow {
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 4px; color: var(--text-3); font-size: 20px;
+  flex-shrink: 0; align-self: center;
+}
+.flow-step h4 { font-size: 14px; font-weight: 700; }
+.flow-step p  { font-size: 12.5px; color: var(--text-2); line-height: 1.45; }
+
+/* ── STEPS ────────────────────────────────────────────────── */
+.steps { display: flex; flex-direction: column; gap: 0; }
+.step-row {
+  display: flex; gap: 0; position: relative;
+}
+.step-row:not(:last-child) .step-line {
+  position: absolute; left: 20px; top: 44px; bottom: 0; width: 2px;
+  background: var(--border);
+}
+.step-dot {
+  width: 40px; height: 40px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 14px; flex-shrink: 0;
+  margin-top: 2px; position: relative; z-index: 1;
+}
+.step-body { padding: 0 0 32px 20px; flex: 1; }
+.step-body h4 { font-size: 15px; font-weight: 700; margin-bottom: 4px; margin-top: 8px; }
+.step-body p  { font-size: 13.5px; color: var(--text-2); }
+.step-body .mono {
+  font-family: 'Courier New', monospace; font-size: 12px;
+  background: #F1F5F9; padding: 8px 12px; border-radius: 6px;
+  margin-top: 8px; color: #334155; border-left: 3px solid var(--accent);
+}
+
+/* ── EMAIL MOCKUP ─────────────────────────────────────────── */
+.email-mockup {
+  background: #fff; border-radius: 14px;
+  border: 1px solid var(--border); overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+.email-header {
+  background: #F1F5F9; padding: 14px 18px;
+  display: flex; align-items: center; gap: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.email-dot { width: 10px; height: 10px; border-radius: 50%; }
+.email-chrome { flex: 1; background: #fff; border-radius: 4px; padding: 4px 10px; font-size: 11px; color: var(--text-3); font-family: 'Courier New', monospace; }
+.email-body { padding: 20px 22px; }
+.email-field { display: flex; gap: 10px; font-size: 12.5px; margin-bottom: 6px; }
+.email-field-label { font-weight: 600; color: var(--text-3); min-width: 50px; }
+.email-divider { height: 1px; background: var(--border); margin: 12px 0; }
+.email-content { font-size: 13px; color: var(--text-2); line-height: 1.6; }
+.email-badge { display: inline-flex; align-items: center; gap: 4px; background: var(--accent-l); color: var(--accent); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; }
+
+/* ── COMPARISON TABLE ─────────────────────────────────────── */
+.compare-table { width: 100%; border-collapse: collapse; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-sm); }
+.compare-table th { padding: 13px 18px; font-size: 13px; text-align: left; }
+.compare-table td { padding: 12px 18px; font-size: 13.5px; border-top: 1px solid var(--border); }
+.compare-table .col-aspect { font-weight: 600; color: var(--text-2); }
+.compare-table .col-before { background: #FFF5F5; }
+.compare-table .col-after  { background: #F0FDF4; }
+.compare-table thead .col-before { background: var(--red); color: #fff; }
+.compare-table thead .col-after  { background: var(--green); color: #fff; }
+.compare-table thead .col-aspect { background: #F8FAFC; }
+.badge-bad  { color: var(--red);   font-weight: 600; }
+.badge-good { color: var(--green); font-weight: 600; }
+
+/* ── WORKFLOW VISUAL ──────────────────────────────────────── */
+.workflow {
+  display: grid; grid-template-columns: 1fr auto 1fr;
+  gap: 16px; align-items: center;
+}
+.workflow-side { display: flex; flex-direction: column; gap: 10px; }
+.workflow-center {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 0 8px;
+}
+.workflow-box {
+  border-radius: 12px; padding: 14px 16px;
+  display: flex; align-items: flex-start; gap: 10px;
+  font-size: 13px;
+}
+.wbox-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+.wbox-content h5 { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+.wbox-content p  { font-size: 12px; color: var(--text-2); }
+.workflow-arrow {
+  display: flex; align-items: center; justify-content: center;
+  color: var(--accent); font-size: 18px; font-weight: 700;
+}
+.workflow-center-box {
+  background: var(--primary); color: #fff; border-radius: 16px;
+  padding: 20px; text-align: center;
+  box-shadow: 0 8px 24px rgba(15,23,42,.3);
+}
+.workflow-center-box h4 { font-size: 14px; margin-bottom: 4px; color: #fff; }
+.workflow-center-box p  { font-size: 11.5px; color: rgba(255,255,255,.6); }
+
+/* ── CHECKLIST ────────────────────────────────────────────── */
+.checklist { display: flex; flex-direction: column; gap: 10px; }
+.check-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  font-size: 13.5px;
+}
+.check-icon {
+  width: 22px; height: 22px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 1px; font-size: 11px; font-weight: 700;
+}
+.check-ok   { background: var(--green-l); color: var(--green); }
+.check-warn { background: var(--orange-l); color: var(--orange); }
+
+/* ── CALLOUT ──────────────────────────────────────────────── */
+.callout {
+  display: flex; gap: 12px; padding: 14px 16px;
+  border-radius: 10px; font-size: 13.5px;
+  border-left: 3px solid;
+}
+.callout-blue   { background: var(--accent-l); border-color: var(--accent); }
+.callout-green  { background: var(--green-l);  border-color: var(--green);  }
+.callout-orange { background: var(--orange-l); border-color: var(--orange); }
+.callout svg    { width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; }
+
+/* ── PILL TABS ────────────────────────────────────────────── */
+.pill-tabs { display: flex; gap: 8px; margin-bottom: 24px; }
+.pill-tab {
+  padding: 8px 18px; border-radius: 99px; font-size: 13.5px; font-weight: 600;
+  border: 2px solid var(--border); background: #fff; cursor: pointer;
+  transition: all .15s;
+}
+.pill-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.pill-tab:not(.active):hover { border-color: var(--accent); color: var(--accent); }
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; animation: fadeIn .3s ease; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+
+/* ── FOOTER ───────────────────────────────────────────────── */
+.footer {
+  background: var(--primary); color: rgba(255,255,255,.5);
+  text-align: center; padding: 32px 48px; font-size: 13px;
+}
+.footer a { color: rgba(255,255,255,.7); text-decoration: none; }
+.footer a:hover { color: #fff; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="topnav">
+  <div class="topnav-logo">
+    <div class="logo-mark"><i data-lucide="shield-check"></i></div>
+    <span class="logo-text">FRS — Gestion Fournisseurs</span>
+  </div>
+  <a href="index.html" class="topnav-back">
+    <i data-lucide="arrow-left" style="width:14px;height:14px"></i>
+    Guide principal
+  </a>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge">
+    <i data-lucide="zap" style="width:12px;height:12px"></i>
+    Alternative simplifiée — sans portail complexe
+  </div>
+  <h1>La voie <span>simple</span> et fiable</h1>
+  <p class="hero-sub">Une boîte email dédiée remplace le portail fournisseur. Zéro compte Microsoft requis. Zéro configuration fragile. Ça marche le jour 1 et dans 3 ans.</p>
+  <div class="hero-compare">
+    <div class="hero-compare-item before">
+      <div>Portail web complexe</div>
+      <small>Exige un compte Microsoft · Casse régulièrement · Difficile à maintenir</small>
+    </div>
+    <div class="hero-compare-item after">
+      <div>Email dédié + 3 automatisations</div>
+      <small>N'importe quelle boîte mail · Stable · Explicable en 30 secondes</small>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- ══ SECTION 1 — Le principe ══════════════════════════════ -->
+  <div class="section">
+    <div class="section-label"><i data-lucide="compass" style="width:13px;height:13px"></i> Le principe</div>
+    <h2 class="section-title">Comment ça fonctionne en une image</h2>
+    <p class="section-sub">Le fournisseur envoie un email. Le système le range, l'enregistre et notifie l'équipe. C'est tout.</p>
+
+    <div class="flow">
+      <div class="flow-step" style="background:#F0FDF4">
+        <div class="flow-step-num">1</div>
+        <div class="flow-step-icon" style="background:#DCFCE7">📧</div>
+        <h4>Le fournisseur envoie</h4>
+        <p>Un email à l'adresse dédiée avec sa pièce jointe. Depuis sa boîte habituelle — Gmail, Outlook, Yahoo, n'importe quoi.</p>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step" style="background:#EFF6FF">
+        <div class="flow-step-num">2</div>
+        <div class="flow-step-icon" style="background:#DBEAFE">⚡</div>
+        <h4>Le système détecte et range</h4>
+        <p>En quelques secondes, le fichier est rangé au bon endroit, la fiche document est créée, le statut est mis à jour.</p>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step" style="background:#FFF7ED">
+        <div class="flow-step-num">3</div>
+        <div class="flow-step-icon" style="background:#FEF3C7">🔔</div>
+        <h4>L'équipe est notifiée</h4>
+        <p>Un email interne signale le nouveau document. Le responsable valide ou rejette depuis son interface habituelle.</p>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step" style="background:#F5F3FF">
+        <div class="flow-step-num">4</div>
+        <div class="flow-step-icon" style="background:#EDE9FE">✅</div>
+        <h4>Accusé de réception auto</h4>
+        <p>Le fournisseur reçoit immédiatement une confirmation avec le numéro de dossier et le document enregistré.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SECTION 2 — Ce que fait le fournisseur ═══════════════ -->
+  <div class="section">
+    <div class="section-label"><i data-lucide="truck" style="width:13px;height:13px"></i> Côté fournisseur</div>
+    <h2 class="section-title">Ce que fait le fournisseur — 3 étapes</h2>
+    <p class="section-sub">Le fournisseur n'a besoin de rien installer. Aucun compte. Aucun portail à apprendre.</p>
+
+    <div class="grid2" style="gap:24px;align-items:start">
+      <div class="steps">
+        <div class="step-row">
+          <div class="step-line"></div>
+          <div class="step-dot" style="background:#DBEAFE;color:var(--accent)">1</div>
+          <div class="step-body">
+            <h4>Il reçoit ses instructions une seule fois</h4>
+            <p>Au démarrage de la relation, il reçoit un email d'accueil avec l'adresse de dépôt et son code fournisseur. Un seul email, une fois.</p>
+            <div class="mono">Adresse : docs.fournisseurs@client.fr<br>Votre code : ACME001<br><br>Pour envoyer un document :<br>Sujet : ACME001-[CODE DOCUMENT]<br>Exemples : ACME001-FT (Fiche Technique)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ACME001-CERT (Certificat)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ACME001-CDC (Cahier des Charges)</div>
+          </div>
+        </div>
+        <div class="step-row">
+          <div class="step-line"></div>
+          <div class="step-dot" style="background:#DCFCE7;color:var(--green)">2</div>
+          <div class="step-body">
+            <h4>Il envoie le document comme un email normal</h4>
+            <p>Il crée un email depuis sa boîte habituelle. Il met le bon sujet, il joint son PDF. Il envoie.</p>
+          </div>
+        </div>
+        <div class="step-row">
+          <div class="step-dot" style="background:#FEF3C7;color:var(--orange)">3</div>
+          <div class="step-body">
+            <h4>Il reçoit un accusé de réception automatique</h4>
+            <p>Dans les secondes qui suivent, il reçoit une confirmation avec le nom du document enregistré et son numéro de dossier. Il sait que c'est bien reçu.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Email mockup -->
+      <div>
+        <p style="font-size:12px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Email envoyé par le fournisseur</p>
+        <div class="email-mockup">
+          <div class="email-header">
+            <div class="email-dot" style="background:#FF5F57"></div>
+            <div class="email-dot" style="background:#FEBC2E"></div>
+            <div class="email-dot" style="background:#28C840"></div>
+            <div class="email-chrome">Nouveau message</div>
+          </div>
+          <div class="email-body">
+            <div class="email-field"><span class="email-field-label">De :</span><span>jean.dupont@acme-alimentaire.fr</span></div>
+            <div class="email-field"><span class="email-field-label">À :</span><span style="color:var(--accent);font-weight:600">docs.fournisseurs@client.fr</span></div>
+            <div class="email-field"><span class="email-field-label">Objet :</span><span style="font-weight:700">ACME001-FT</span></div>
+            <div class="email-field"><span class="email-field-label">PJ :</span><span>📎 Fiche_Technique_Farine_T45_v2.pdf <span style="color:var(--text-3)">(1,2 Mo)</span></span></div>
+            <div class="email-divider"></div>
+            <div class="email-content">
+              Bonjour,<br><br>
+              Veuillez trouver ci-joint notre fiche technique mise à jour pour la Farine T45.<br><br>
+              Cordialement,<br>
+              Jean Dupont — Responsable Qualité ACME Alimentaire
+            </div>
+          </div>
+        </div>
+
+        <p style="font-size:12px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin:20px 0 10px">Réponse automatique reçue par le fournisseur</p>
+        <div class="email-mockup">
+          <div class="email-header">
+            <div class="email-dot" style="background:#FF5F57"></div>
+            <div class="email-dot" style="background:#FEBC2E"></div>
+            <div class="email-dot" style="background:#28C840"></div>
+            <div class="email-chrome">Message reçu — docs.fournisseurs</div>
+          </div>
+          <div class="email-body">
+            <div class="email-field"><span class="email-field-label">De :</span><span style="font-weight:600">Système Qualité — Client SAS</span></div>
+            <div class="email-field"><span class="email-field-label">À :</span><span>jean.dupont@acme-alimentaire.fr</span></div>
+            <div class="email-field"><span class="email-field-label">Objet :</span><span>✅ Document reçu — ACME001 · Fiche Technique</span></div>
+            <div class="email-divider"></div>
+            <div class="email-content">
+              Bonjour,<br><br>
+              Nous confirmons la bonne réception de votre document :<br><br>
+              <span class="email-badge">DOC-2025-0847</span>&nbsp;
+              <strong>Fiche Technique — ACME Alimentaire</strong><br>
+              <span style="font-size:12px;color:var(--text-3)">Reçu le 05/04/2025 à 14h32 · En attente de validation Qualité</span><br><br>
+              Vous serez notifié par email du résultat de la validation.<br><br>
+              <span style="font-size:12.5px;color:var(--text-3)">Ce message est automatique. Ne pas répondre directement.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SECTION 3 — Les 3 automatisations ════════════════════ -->
+  <div class="section">
+    <div class="section-label"><i data-lucide="cpu" style="width:13px;height:13px"></i> Automatisations</div>
+    <h2 class="section-title">3 automatisations. C'est tout.</h2>
+    <p class="section-sub">Les 7 flows complexes de l'architecture initiale sont remplacés par 3 mécanismes simples, sur des déclencheurs ultra-fiables.</p>
+
+    <div class="grid3" style="margin-bottom:24px">
+      <!-- Auto 1 -->
+      <div class="card card-elevated" style="border-top:4px solid var(--green)">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+          <div style="width:40px;height:40px;background:var(--green-l);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px">⏰</div>
+          <div>
+            <div style="font-weight:800;font-size:14px">Calcul quotidien</div>
+            <div style="font-size:11.5px;color:var(--text-3)">Chaque matin à 07h00</div>
+          </div>
+        </div>
+        <p style="font-size:13px;color:var(--text-2);margin-bottom:14px">Passe en revue tous les documents actifs. Calcule les statuts selon les dates d'expiration. Envoie les alertes J-90, J-30, J-7 par email.</p>
+        <div style="background:var(--green-l);border-radius:8px;padding:10px 12px;font-size:12.5px">
+          <strong>Déclencheur :</strong> planifié<br>
+          <span style="color:var(--text-2)">Le plus stable qui soit — jamais en panne</span>
+        </div>
+      </div>
+
+      <!-- Auto 2 -->
+      <div class="card card-elevated" style="border-top:4px solid var(--accent)">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+          <div style="width:40px;height:40px;background:var(--accent-l);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px">📥</div>
+          <div>
+            <div style="font-weight:800;font-size:14px">Réception document</div>
+            <div style="font-size:11.5px;color:var(--text-3)">À chaque email entrant avec PJ</div>
+          </div>
+        </div>
+        <p style="font-size:13px;color:var(--text-2);margin-bottom:14px">Détecte l'arrivée d'un email dans la boîte dédiée. Range le fichier, crée la fiche document, accuse réception au fournisseur, notifie l'équipe Qualité.</p>
+        <div style="background:var(--accent-l);border-radius:8px;padding:10px 12px;font-size:12.5px">
+          <strong>Déclencheur :</strong> email entrant (boîte partagée)<br>
+          <span style="color:var(--text-2)">Fonctionne avec n'importe quelle boîte mail mondiale</span>
+        </div>
+      </div>
+
+      <!-- Auto 3 -->
+      <div class="card card-elevated" style="border-top:4px solid var(--violet)">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+          <div style="width:40px;height:40px;background:var(--violet-l);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px">📤</div>
+          <div>
+            <div style="font-weight:800;font-size:14px">Relance fournisseur</div>
+            <div style="font-size:11.5px;color:var(--text-3)">Sur clic d'un bouton dans la liste</div>
+          </div>
+        </div>
+        <p style="font-size:13px;color:var(--text-2);margin-bottom:14px">Le responsable sélectionne un fournisseur et clique "Relancer". L'email part automatiquement avec la liste des documents manquants ou expirés.</p>
+        <div style="background:var(--violet-l);border-radius:8px;padding:10px 12px;font-size:12.5px">
+          <strong>Déclencheur :</strong> bouton manuel dans l'interface<br>
+          <span style="color:var(--text-2)">Zéro config côté SharePoint — apparaît automatiquement</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout callout-blue">
+      <i data-lucide="info"></i>
+      <div><strong>Pourquoi 3 et pas 7 ?</strong> Les 7 flows de l'architecture initiale couvraient des cas qui n'arrivaient pas (checklist auto), utilisaient des déclencheurs deprecated (Forms, GetOnNewItems), et se chevauchaient. Ces 3 automatisations couvrent 100% des besoins opérationnels réels.</div>
+    </div>
+  </div>
+
+  <!-- ══ SECTION 4 — Vue responsable qualité ══════════════════ -->
+  <div class="section">
+    <div class="section-label"><i data-lucide="user-check" style="width:13px;height:13px"></i> Côté équipe Qualité</div>
+    <h2 class="section-title">La journée type du responsable Qualité</h2>
+    <p class="section-sub">Ce que la personne voit et fait au quotidien, sans jamais toucher à la technique.</p>
+
+    <div class="pill-tabs">
+      <button class="pill-tab active" onclick="showTab('matin')">☀️ Le matin</button>
+      <button class="pill-tab" onclick="showTab('reception')">📥 Réception document</button>
+      <button class="pill-tab" onclick="showTab('relance')">📤 Relance fournisseur</button>
+      <button class="pill-tab" onclick="showTab('tableau')">📊 Vue tableau de bord</button>
+    </div>
+
+    <div id="tab-matin" class="tab-panel active">
+      <div class="grid2" style="gap:20px;align-items:start">
+        <div>
+          <div class="card" style="margin-bottom:16px">
+            <h4 style="margin-bottom:10px;font-size:15px">07h30 — Email automatique reçu</h4>
+            <p style="font-size:13.5px;color:var(--text-2);margin-bottom:12px">Chaque matin, le responsable reçoit le rapport quotidien automatique.</p>
+            <div class="email-mockup">
+              <div class="email-body" style="padding:14px 16px">
+                <div style="font-size:12px;font-weight:700;color:var(--orange);margin-bottom:8px">⚠️ RAPPORT QUOTIDIEN CONFORMITÉ — 05/04/2025</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
+                  <div style="background:#FEE2E2;border-radius:6px;padding:8px;text-align:center">
+                    <div style="font-size:20px;font-weight:800;color:var(--red)">3</div>
+                    <div style="font-size:10.5px;color:var(--red)">Expirés</div>
+                  </div>
+                  <div style="background:#FEF3C7;border-radius:6px;padding:8px;text-align:center">
+                    <div style="font-size:20px;font-weight:800;color:var(--orange)">7</div>
+                    <div style="font-size:10.5px;color:var(--orange)">Expirent bientôt</div>
+                  </div>
+                  <div style="background:#DCFCE7;border-radius:6px;padding:8px;text-align:center">
+                    <div style="font-size:20px;font-weight:800;color:var(--green)">42</div>
+                    <div style="font-size:10.5px;color:var(--green)">Valides</div>
+                  </div>
+                </div>
+                <div style="font-size:12px;color:var(--text-2)">→ Voir la liste complète dans SharePoint</div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <h4 style="margin-bottom:10px;font-size:15px">Actions disponibles immédiatement</h4>
+            <div class="checklist">
+              <div class="check-item"><div class="check-icon check-ok">✓</div><span>Ouvrir SharePoint → vue "Expirés" → relancer les fournisseurs concernés en 1 clic</span></div>
+              <div class="check-item"><div class="check-icon check-ok">✓</div><span>Consulter les documents "En attente de validation" et les valider ou rejeter</span></div>
+              <div class="check-item"><div class="check-icon check-ok">✓</div><span>Voir qui a envoyé un document hier (vue "Reçus aujourd'hui")</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="border:2px solid var(--accent)">
+          <div style="font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">Vue SharePoint — ce que le responsable voit</div>
+          <!-- Mini SP mockup -->
+          <div style="background:#F8FAFC;border-radius:10px;overflow:hidden;border:1px solid var(--border)">
+            <div style="background:#0078D4;padding:8px 12px;display:flex;align-items:center;gap:8px">
+              <div style="width:8px;height:8px;background:rgba(255,255,255,.3);border-radius:50%"></div>
+              <div style="font-size:10px;font-family:'Courier New',monospace;color:rgba(255,255,255,.8);flex:1">sharepoint.com/sites/GestionFournisseurs</div>
+            </div>
+            <div style="padding:12px">
+              <div style="display:flex;gap:6px;margin-bottom:10px">
+                <div style="background:#DBEAFE;color:#1D4ED8;padding:4px 10px;border-radius:99px;font-size:11px;font-weight:700">Tous</div>
+                <div style="background:#FEE2E2;color:#DC2626;padding:4px 10px;border-radius:99px;font-size:11px;font-weight:700">🔴 Expirés (3)</div>
+                <div style="background:#FEF3C7;color:#D97706;padding:4px 10px;border-radius:99px;font-size:11px;font-weight:700">🟡 Bientôt (7)</div>
+                <div style="background:#DCFCE7;color:#16A34A;padding:4px 10px;border-radius:99px;font-size:11px;font-weight:700">🟢 En attente</div>
+              </div>
+              <div style="font-size:11px;display:flex;flex-direction:column;gap:4px">
+                <div style="display:grid;grid-template-columns:2fr 1.5fr 1fr 1fr;gap:6px;padding:5px 8px;background:#FEE2E2;border-radius:4px">
+                  <span style="font-weight:600">Certificat IFS · ACME001</span><span>Expiré le 01/02/2025</span><span style="color:var(--red);font-weight:700">Expiré</span><span style="color:var(--accent)">Relancer →</span>
+                </div>
+                <div style="display:grid;grid-template-columns:2fr 1.5fr 1fr 1fr;gap:6px;padding:5px 8px;background:#FEF3C7;border-radius:4px">
+                  <span style="font-weight:600">Fiche Technique · BETA002</span><span>Expire le 20/04/2025</span><span style="color:var(--orange);font-weight:700">J-15</span><span style="color:var(--accent)">Relancer →</span>
+                </div>
+                <div style="display:grid;grid-template-columns:2fr 1.5fr 1fr 1fr;gap:6px;padding:5px 8px;background:#F0FDF4;border-radius:4px">
+                  <span style="font-weight:600">CDC · GAMMA003</span><span>Reçu 05/04 à 14h32</span><span style="color:var(--orange);font-weight:700">À valider</span><span style="color:var(--accent)">Voir →</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-reception" class="tab-panel">
+      <div class="grid2" style="gap:20px">
+        <div class="steps">
+          <div class="step-row">
+            <div class="step-line"></div>
+            <div class="step-dot" style="background:#DBEAFE;color:var(--accent)">1</div>
+            <div class="step-body">
+              <h4>Notification email reçue</h4>
+              <p>Le responsable reçoit un email : "Nouveau document reçu de ACME Alimentaire — Fiche Technique". Il clique sur le lien.</p>
+            </div>
+          </div>
+          <div class="step-row">
+            <div class="step-line"></div>
+            <div class="step-dot" style="background:#DBEAFE;color:var(--accent)">2</div>
+            <div class="step-body">
+              <h4>Il ouvre la fiche document dans SharePoint</h4>
+              <p>La fiche est déjà créée avec toutes les infos : fournisseur, type, date de réception, lien vers le fichier PDF.</p>
+            </div>
+          </div>
+          <div class="step-row">
+            <div class="step-line"></div>
+            <div class="step-dot" style="background:#DBEAFE;color:var(--accent)">3</div>
+            <div class="step-body">
+              <h4>Il ouvre le PDF et le vérifie</h4>
+              <p>Le document s'ouvre directement dans le navigateur (lien dans SharePoint). Il contrôle le contenu.</p>
+            </div>
+          </div>
+          <div class="step-row">
+            <div class="step-dot" style="background:#DCFCE7;color:var(--green)">4</div>
+            <div class="step-body">
+              <h4>Il valide ou rejette</h4>
+              <p>Il change le statut : <strong>"Valide"</strong> (avec date d'émission et d'expiration) ou <strong>"Non conforme"</strong> avec commentaire. Le système recalcule les alertes automatiquement.</p>
+            </div>
+          </div>
+        </div>
+        <div class="callout callout-green" style="align-self:start;margin-top:8px">
+          <i data-lucide="check-circle"></i>
+          <div>
+            <strong>Ce que le responsable n'a PAS à faire</strong><br>
+            <ul style="margin:8px 0 0 16px;display:flex;flex-direction:column;gap:4px;font-size:13px">
+              <li>Aller chercher le fichier dans une boîte email</li>
+              <li>Le renommer et le ranger manuellement</li>
+              <li>Créer la fiche dans SharePoint</li>
+              <li>Envoyer un accusé de réception au fournisseur</li>
+            </ul>
+            <div style="margin-top:8px;font-size:12.5px">Tout ça est fait automatiquement à la réception de l'email du fournisseur.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-relance" class="tab-panel">
+      <div class="grid2" style="gap:20px">
+        <div class="steps">
+          <div class="step-row">
+            <div class="step-line"></div>
+            <div class="step-dot" style="background:#F3E8FF;color:var(--violet)">1</div>
+            <div class="step-body">
+              <h4>Il ouvre la vue "Expirés" ou "Expire bientôt"</h4>
+              <p>Dans SharePoint, il filtre les fournisseurs avec des documents problématiques. Il sélectionne un fournisseur.</p>
+            </div>
+          </div>
+          <div class="step-row">
+            <div class="step-line"></div>
+            <div class="step-dot" style="background:#F3E8FF;color:var(--violet)">2</div>
+            <div class="step-body">
+              <h4>Il clique "Relancer ce fournisseur"</h4>
+              <p>Un bouton dans le menu d'actions de la liste. Un seul clic.</p>
+              <div class="mono">Menu contextuel → ⚡ Relancer ce fournisseur</div>
+            </div>
+          </div>
+          <div class="step-row">
+            <div class="step-dot" style="background:#DCFCE7;color:var(--green)">3</div>
+            <div class="step-body">
+              <h4>L'email part automatiquement</h4>
+              <p>Le fournisseur reçoit un email personnalisé avec la liste exacte des documents à fournir, leur statut, et l'adresse de dépôt. Rien à rédiger.</p>
+            </div>
+          </div>
+        </div>
+        <div class="email-mockup">
+          <div class="email-header">
+            <div class="email-dot" style="background:#FF5F57"></div>
+            <div class="email-dot" style="background:#FEBC2E"></div>
+            <div class="email-dot" style="background:#28C840"></div>
+            <div class="email-chrome">Email de relance envoyé au fournisseur</div>
+          </div>
+          <div class="email-body">
+            <div class="email-field"><span class="email-field-label">À :</span><span>contact.qualite@acme-alimentaire.fr</span></div>
+            <div class="email-field"><span class="email-field-label">Objet :</span><span style="font-weight:700">Action requise — Documents à renouveler</span></div>
+            <div class="email-divider"></div>
+            <div class="email-content">
+              Bonjour,<br><br>
+              Dans le cadre de notre partenariat, nous vous rappelons que les documents suivants nécessitent votre attention :<br><br>
+              <div style="background:#FEF3C7;border-radius:6px;padding:10px;font-size:12.5px;margin:8px 0">
+                🟠 <strong>Certificat IFS/BRC</strong> — Expiré le 01/02/2025<br>
+                🔴 <strong>Fiche Technique Farine T45</strong> — Expiré depuis 64 jours<br>
+                🟡 <strong>Déclaration allergènes</strong> — Expire dans 15 jours
+              </div>
+              Merci de nous transmettre les versions à jour à l'adresse suivante :<br>
+              <strong>docs.fournisseurs@client.fr</strong><br>
+              Sujet : ACME001-[CODE DOCUMENT]<br><br>
+              Cordialement,<br>
+              Service Qualité — Client SAS
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-tableau" class="tab-panel">
+      <div class="card" style="border:2px solid var(--border)">
+        <div style="font-size:12px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px">Vue tableau de bord — SharePoint — ce que le responsable voit</div>
+        <!-- Dashboard mockup -->
+        <div style="background:#0078D4;border-radius:10px 10px 0 0;padding:10px 16px;display:flex;align-items:center;gap:10px">
+          <span style="color:#fff;font-weight:700;font-size:13px">🛡️ Gestion Fournisseurs — Tableau de bord</span>
+          <span style="margin-left:auto;font-size:11px;color:rgba(255,255,255,.6)">05/04/2025 · 08h12</span>
+        </div>
+        <div style="border:1px solid var(--border);border-top:none;border-radius:0 0 10px 10px;overflow:hidden">
+          <!-- KPIs -->
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border)">
+            <div style="padding:16px;text-align:center;border-right:1px solid var(--border)">
+              <div style="font-size:28px;font-weight:800;color:var(--green)">87%</div>
+              <div style="font-size:12px;color:var(--text-2)">Conformité globale</div>
+            </div>
+            <div style="padding:16px;text-align:center;border-right:1px solid var(--border)">
+              <div style="font-size:28px;font-weight:800;color:var(--red)">3</div>
+              <div style="font-size:12px;color:var(--text-2)">Documents expirés</div>
+            </div>
+            <div style="padding:16px;text-align:center;border-right:1px solid var(--border)">
+              <div style="font-size:28px;font-weight:800;color:var(--orange)">7</div>
+              <div style="font-size:12px;color:var(--text-2)">Expirent sous 30j</div>
+            </div>
+            <div style="padding:16px;text-align:center">
+              <div style="font-size:28px;font-weight:800;color:var(--accent)">5</div>
+              <div style="font-size:12px;color:var(--text-2)">En attente validation</div>
+            </div>
+          </div>
+          <!-- Table -->
+          <div style="font-size:12px">
+            <div style="display:grid;grid-template-columns:2fr 1.5fr 1.5fr 1fr 1fr 1fr;padding:8px 14px;background:#F8FAFC;font-weight:700;color:var(--text-2);border-bottom:1px solid var(--border)">
+              <span>Document</span><span>Fournisseur</span><span>Type</span><span>Validité</span><span>Statut</span><span>Action</span>
+            </div>
+            <div style="display:grid;grid-template-columns:2fr 1.5fr 1.5fr 1fr 1fr 1fr;padding:7px 14px;background:#FEF2F2;border-bottom:1px solid var(--border);align-items:center">
+              <span style="font-weight:600">Certificat IFS v4</span><span>ACME Alimentaire</span><span>CERT_GFSI</span><span style="color:var(--red)">01/02/2025</span>
+              <span style="background:#FEE2E2;color:var(--red);padding:2px 6px;border-radius:4px;font-weight:700;font-size:10.5px;width:fit-content">Expiré</span>
+              <span style="color:var(--accent);font-weight:600;cursor:pointer">Relancer</span>
+            </div>
+            <div style="display:grid;grid-template-columns:2fr 1.5fr 1.5fr 1fr 1fr 1fr;padding:7px 14px;background:#FFFBEB;border-bottom:1px solid var(--border);align-items:center">
+              <span style="font-weight:600">Fiche Technique T45</span><span>ACME Alimentaire</span><span>FT</span><span style="color:var(--orange)">20/04/2025</span>
+              <span style="background:#FEF3C7;color:var(--orange);padding:2px 6px;border-radius:4px;font-weight:700;font-size:10.5px;width:fit-content">J-15</span>
+              <span style="color:var(--accent);font-weight:600;cursor:pointer">Relancer</span>
+            </div>
+            <div style="display:grid;grid-template-columns:2fr 1.5fr 1.5fr 1fr 1fr 1fr;padding:7px 14px;background:#F0FDF4;border-bottom:1px solid var(--border);align-items:center">
+              <span style="font-weight:600">CDC Farine T45</span><span>BETA Meunerie</span><span>CDC</span><span style="color:var(--green)">12/01/2026</span>
+              <span style="background:#DCFCE7;color:var(--green);padding:2px 6px;border-radius:4px;font-weight:700;font-size:10.5px;width:fit-content">À valider</span>
+              <span style="color:var(--accent);font-weight:600;cursor:pointer">Valider</span>
+            </div>
+            <div style="display:grid;grid-template-columns:2fr 1.5fr 1.5fr 1fr 1fr 1fr;padding:7px 14px;background:#F0FDF4;align-items:center">
+              <span style="font-weight:600">Déclaration allergènes</span><span>GAMMA Épices</span><span>CDC</span><span style="color:var(--green)">30/09/2026</span>
+              <span style="background:#DCFCE7;color:var(--green);padding:2px 6px;border-radius:4px;font-weight:700;font-size:10.5px;width:fit-content">Valide</span>
+              <span style="color:var(--text-3)">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SECTION 5 — Comparaison ══════════════════════════════ -->
+  <div class="section">
+    <div class="section-label"><i data-lucide="git-compare" style="width:13px;height:13px"></i> Comparaison</div>
+    <h2 class="section-title">Approche initiale vs voie simple</h2>
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th class="col-aspect">Critère</th>
+          <th class="col-before">🔴 Approche initiale (7 flows)</th>
+          <th class="col-after">🟢 Voie simple (3 automatisations)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="col-aspect">Dépôt de document par un fournisseur externe</td>
+          <td class="col-before"><span class="badge-bad">✗ Impossible</span> — exige un compte Microsoft</td>
+          <td class="col-after"><span class="badge-good">✓ Universel</span> — n'importe quelle boîte mail</td>
+        </tr>
+        <tr>
+          <td class="col-aspect">Fiabilité des déclencheurs</td>
+          <td class="col-before"><span class="badge-bad">⚠ Fragile</span> — Forms, GetOnNewItems (deprecated)</td>
+          <td class="col-after"><span class="badge-good">✓ Excellente</span> — Recurrence + Email trigger</td>
+        </tr>
+        <tr>
+          <td class="col-aspect">Maintenance si Microsoft change quelque chose</td>
+          <td class="col-before"><span class="badge-bad">⚠ Risque élevé</span> — index réponses Forms, schemas JSON</td>
+          <td class="col-after"><span class="badge-good">✓ Risque minimal</span> — conventions email stables</td>
+        </tr>
+        <tr>
+          <td class="col-aspect">Temps de mise en place</td>
+          <td class="col-before">7 flows complexes — 3h à 5h avec risques d'erreur</td>
+          <td class="col-after"><span class="badge-good">3 flows simples — 1h30 maxi</span></td>
+        </tr>
+        <tr>
+          <td class="col-aspect">Si un flow tombe en panne</td>
+          <td class="col-before"><span class="badge-bad">Impact difficile à diagnostiquer</span> — dépendances entre flows</td>
+          <td class="col-after"><span class="badge-good">✓ Isolé</span> — chaque flow est indépendant</td>
+        </tr>
+        <tr>
+          <td class="col-aspect">Explication au client</td>
+          <td class="col-before">Difficile — portail, tokens, comptes invités…</td>
+          <td class="col-after"><span class="badge-good">✓ 30 secondes</span> — "envoyez un email avec votre code"</td>
+        </tr>
+        <tr>
+          <td class="col-aspect">Expérience fournisseur</td>
+          <td class="col-before">Compte Microsoft requis, portail à apprendre</td>
+          <td class="col-after"><span class="badge-good">✓ Email depuis sa boîte habituelle</span></td>
+        </tr>
+        <tr>
+          <td class="col-aspect">Accusé de réception automatique</td>
+          <td class="col-before">Prévu mais dépendait du flow Forms</td>
+          <td class="col-after"><span class="badge-good">✓ Natif — reply-to automatique</span></td>
+        </tr>
+        <tr>
+          <td class="col-aspect">Structure SharePoint</td>
+          <td class="col-before" colspan="2" style="text-align:center;background:#F8FAFC"><strong>Identique des deux côtés</strong> — aucun changement côté listes et données</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══ SECTION 6 — Mise en place ════════════════════════════ -->
+  <div class="section">
+    <div class="section-label"><i data-lucide="play" style="width:13px;height:13px"></i> Mise en place</div>
+    <h2 class="section-title">Ce qu'il faut faire pour basculer</h2>
+    <p class="section-sub">Structure SharePoint inchangée. Seule la mécanique de réception des documents change.</p>
+
+    <div class="grid2" style="gap:24px">
+      <div>
+        <div class="steps">
+          <div class="step-row">
+            <div class="step-line"></div>
+            <div class="step-dot" style="background:#DBEAFE;color:var(--accent)">1</div>
+            <div class="step-body">
+              <h4>Créer la boîte mail dédiée <span style="font-weight:400;font-size:12px;color:var(--text-3)">10 min</span></h4>
+              <p>Centre d'administration M365 → Groupes → Boîtes partagées → Créer. Ajouter l'équipe Qualité comme membres.</p>
+              <div class="mono">docs.fournisseurs@[domaine-client].fr</div>
+            </div>
+          </div>
+          <div class="step-row">
+            <div class="step-line"></div>
+            <div class="step-dot" style="background:#DBEAFE;color:var(--accent)">2</div>
+            <div class="step-body">
+              <h4>Supprimer les 7 flows actuels <span style="font-weight:400;font-size:12px;color:var(--text-3)">5 min</span></h4>
+              <p>Power Automate → Mes flux → supprimer les 7 existants. Repartir de zéro proprement.</p>
+            </div>
+          </div>
+          <div class="step-row">
+            <div class="step-line"></div>
+            <div class="step-dot" style="background:#DBEAFE;color:var(--accent)">3</div>
+            <div class="step-body">
+              <h4>Créer les 3 nouveaux flows <span style="font-weight:400;font-size:12px;color:var(--text-3)">1h30</span></h4>
+              <p>Flow 1 : Recurrence quotidienne. Flow 2 : email entrant. Flow 3 : bouton relance. Triggers simples, logique lisible.</p>
+            </div>
+          </div>
+          <div class="step-row">
+            <div class="step-dot" style="background:#DCFCE7;color:var(--green)">4</div>
+            <div class="step-body">
+              <h4>Envoyer l'email d'instructions aux fournisseurs <span style="font-weight:400;font-size:12px;color:var(--text-3)">30 min</span></h4>
+              <p>Un email type avec l'adresse de dépôt, leur code fournisseur, et la liste de leurs codes documents. Une seule fois.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="background:var(--green-l);border-color:var(--green);margin-bottom:16px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+            <i data-lucide="check-circle" style="color:var(--green);width:20px;height:20px"></i>
+            <strong style="color:var(--green)">Ce qui NE change pas</strong>
+          </div>
+          <div class="checklist">
+            <div class="check-item"><div class="check-icon check-ok">✓</div><span>Les 6 listes SharePoint — identiques</span></div>
+            <div class="check-item"><div class="check-icon check-ok">✓</div><span>La bibliothèque Documents_Fichiers</span></div>
+            <div class="check-item"><div class="check-icon check-ok">✓</div><span>Les types de documents et leurs règles</span></div>
+            <div class="check-item"><div class="check-icon check-ok">✓</div><span>Les vues filtrées (Expirés, Bientôt, En attente)</span></div>
+            <div class="check-item"><div class="check-icon check-ok">✓</div><span>Le calcul de conformité fournisseur</span></div>
+            <div class="check-item"><div class="check-icon check-ok">✓</div><span>Les alertes J-90 / J-30 / J-7</span></div>
+          </div>
+        </div>
+        <div class="callout callout-orange">
+          <i data-lucide="alert-triangle"></i>
+          <div><strong>Point d'attention fournisseurs</strong><br>Si certains fournisseurs ont l'habitude d'un portail, l'email est encore plus simple pour eux. L'email d'instructions est à envoyer une seule fois. Après, c'est automatique.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <p>FRS — Gestion Fournisseurs &nbsp;·&nbsp; <a href="index.html">← Retour au guide principal</a> &nbsp;·&nbsp; <a href="FONCTIONNALITES.md">Spécification fonctionnelle</a></p>
+</div>
+
+<script>
+lucide.createIcons();
+
+function showTab(id) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.pill-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+</script>
+</body>
+</html>
