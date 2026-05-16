@@ -1,30 +1,149 @@
 # 🛡️ Toolkit Supplier Management & HACCP 2026
-> **Solution de Gestion Documentaire Fournisseurs & Plan de Maîtrise Sanitaire (PMS)**
+
+> **Solution complète de Gestion Documentaire Fournisseurs & Plan de Maîtrise Sanitaire (PMS)**
 
 [![GitHub Repo](https://img.shields.io/badge/GitHub-Repo-blue?logo=github)](https://github.com/Visitune/Gestion-Fournisseurs-Plateforme-SharePoint)
-[![Netlify Status](https://api.netlify.com/api/v1/badges/your-id/deploy-status)](https://netlify.app)
-*(Bouton indicatif)*
-
-Ce dépôt contient une solution complète et modulaire pour la gestion de la conformité fournisseurs (IFS/BRC/FSSC) et l'automatisation du plan HACCP sur Microsoft 365.
-
-### 🌐 Démo Client Interactive
-Le fichier `index.html` sert de guide visuel et d'interface de démonstration.
-**Pour les clients** : Publié sur GitHub Pages pour une consultation instantanée sans configuration.
-**Pour les collègues** : Guide complet des flux SharePoint et des structures de données.
 
 ---
+
+## 🏗️ Les 3 piliers du projet
+
+Ce dépôt contient **3 composants complémentaires** qui couvrent tout le cycle de vie de la gestion documentaire fournisseur :
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                                                                     │
+│   ╔══════════════════╗   ╔══════════════════════╗   ╔══════════════╗ │
+│   ║   A — SCAN &    ║   ║   B — PLATEFORME    ║   ║  C — COLLECTE║ │
+│   ║  AUDIT TERRAIN  ║   ║      SHAREPOINT      ║   ║  SIMPLIFIÉE  ║ │
+│   ║  (app/app.html) ║   ║  (scripts + flows)   ║   ║ (easy-way)   ║ │
+│   ╚══════════════════╝   ╚══════════════════════╝   ╚══════════════╝ │
+│           │                          │                      │        │
+│           │    (alimente les         │                      │        │
+│           │     données de base)     │                      │        │
+│           └──────────────┬───────────┘                      │        │
+│                          │                                  │        │
+│                          ▼                                  │        │
+│                   ╔══════════════════════╗                  │        │
+│                   ║   DOCUMENTS +        ║                  │        │
+│                   ║   MÉTADONNÉES        ║                  │        │
+│                   ║   (SharePoint Lists) ║                  │        │
+│                   ╚══════════════════════╝                  │        │
+│                          ▲                                  │        │
+│                          │                                  │        │
+│                          └────────────────┬─────────────────┘        │
+│                                           │                         │
+│                              (les fournisseurs                       │
+│                               envoient leurs docs)                   │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### A — App de Scan & Audit Terrain (`app/`)
+
+**Quoi :** Une application web standalone (SPA) qui utilise la FileSystem Access API pour **scanner les dossiers fournisseurs directement sur le disque local**.
+
+**Quand l'utiliser :**
+- **Avant la migration** : auditer tout ce qu'on a dans les dossiers partagés existants
+- **Pour préparer un inventaire** : extraire automatiquement les dates d'expiration des PDFs, DOCXs, images
+- **En complément de SharePoint** : vérifier un lot de documents en local avant de les importer
+
+**Fonctionnalités clés :**
+- Scan récursif des dossiers fournisseurs
+- Extraction intelligente des dates (4 phases : patterns haute-confiance, contexte, mots-clés, brute)
+- Détection du type de document (FT, Certificat, CDC, Analyse...) par règles configurables
+- Dashboard de conformité avec statuts (valide / expire bientôt / expiré)
+- Dark/light mode
+- Entièrement offline — zéro serveur
+
+### B — Plateforme SharePoint de Gestion Centralisée (`scripts/`, `flows/`, `config/`)
+
+**Quoi :** Le système de production déployé sur Microsoft 365. C'est le cœur du projet.
+
+**Ce qu'il fait :**
+- Stocke tous les documents et leurs métadonnées dans SharePoint Lists
+- Calcule automatiquement les statuts chaque matin
+- Envoie des alertes email J-90 / J-30 / J-7 avant expiration
+- Permet de relancer un fournisseur en 1 clic
+- Gère l'historique des versions documentaires
+- Suit l'analyse fraude (VACCP) dans un espace dédié
+
+### C — Collecte Simplifiée par Email (`easy-way.html`)
+
+**Quoi :** Une alternative au portail fournisseur complexe. Les fournisseurs envoient leurs documents **par email** depuis leur boîte habituelle.
+
+**Pourquoi :** Pas de compte Microsoft à créer, pas de portail à apprendre, pas de maintenance fragile.
+
+**Comment ça marche :**
+1. Le fournisseur envoie un email à `docs.fournisseurs@client.fr` avec son code dans l'objet
+2. Power Automate détecte l'email, range le fichier, crée la fiche document
+3. Le fournisseur reçoit un accusé de réception automatique
+4. L'équipe Qualité est notifiée
+
+---
+
+## Relation entre les 3 piliers — Workflow complet
+
+```
+┌──────────────────────────────────────────────────────────────────────────┐
+│                                                                          │
+│   PHASE 1 — AUDIT TERRAIN (A. App de scan)                              │
+│   ─────────────────────────────────────────                              │
+│                                                                          │
+│   1. L'équipe lance app.html et connecte le dossier partagé              │
+│   2. L'app scanne tous les fichiers et extrait les dates                 │
+│   3. L'équipe voit le dashboard de conformité actuelle                   │
+│   4. L'index JSON est généré → inventaire prêt pour la migration         │
+│                                                                          │
+│   ↓ Données d'inventaire alimentent la phase 2                          │
+│                                                                          │
+│   PHASE 2 — PLATEFORME DE GESTION (B. SharePoint)                       │
+│   ─────────────────────────────────────────────                          │
+│                                                                          │
+│   5. Les listes SharePoint sont provisionnées (Deploy-FRS.ps1)           │
+│   6. Les données d'inventaire sont importées                             │
+│   7. Les flux Power Automate tournent au quotidien                       │
+│   8. L'équipe gère les validations et relances depuis SharePoint         │
+│                                                                          │
+│   ↑ Réapprovisionnement : nouveaux documents venant des fournisseurs     │
+│                                                                          │
+│   PHASE 3 — COLLECTE AU QUOTIDIEN (C. Easy Way ou portail)              │
+│   ───────────────────────────────────────────────────────                │
+│                                                                          │
+│   9. Les fournisseurs envoient leurs mises à jour par email              │
+│   ou via un portail SharePoint (selon préférence client)                 │
+│   10. Les documents sont automatiquement rangés dans SharePoint          │
+│   11. L'équipe Qualité valide depuis son interface habituelle            │
+│                                                                          │
+└──────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
 ## Structure du projet
 
 ```
-├── index.html                            ← Présentation interactive + démo visuelle (GitHub Pages)
-├── PROJET_SHAREPOINT_FRS.md              ← Document de référence complet
+├── app/                                    ← PILIER A — Scan & Audit Terrain
+│   ├── app.html                            ← Application SPA (ouvrir dans Chrome/Edge)
+│   ├── js/
+│   │   └── date-extractor.js               ← Moteur d'extraction de dates (4 phases)
+│   └── data/
+│       ├── date-priority-rules.json        ← Règles par type de document (source de vérité)
+│       └── docfournisseurs-index.json      ← Index généré automatiquement au scan
+│
+├── index.html                              ← PILIER B — Présentation interactive + démo visuelle
+│                                               (Guide client publié sur GitHub Pages)
+│
+├── easy-way.html                           ← PILIER C — Approche simplifiée par email
+│                                               (Alternative au portail fournisseur)
+│
+├── PROJET_SHAREPOINT_FRS.md                ← Document de référence complet (architecture)
+├── FONCTIONNALITES.md                      ← Spécifications fonctionnelles
+├── README.md                               ← Ce fichier
 │
 ├── scripts/
-│   ├── Deploy-FRS.ps1                    ← Script PnP déploiement (Phase 0) — REQUIS
-│   │                                        Crée : 6 listes + bibliothèque Documents_Fichiers
+│   ├── Deploy-FRS.ps1                      ← Script PnP déploiement (Phase 0) — REQUIS
+│   │                                           Crée : 6 listes + bibliothèque Documents_Fichiers
 │   └── automate/
 │       └── flows/
 │           ├── flow_calcul_statuts.json               ← Flux 1 — Calcul statuts quotidien
@@ -35,22 +154,35 @@ Le fichier `index.html` sert de guide visuel et d'interface de démonstration.
 │           ├── flow_init_checklist_fournisseur.json   ← Flux 6 — Génère checklist à la création fournisseur
 │           └── flow_init_checklist_lien.json          ← Flux 7 — Génère checklist à la création lien Fourn×Mat
 │
-├── GenerateurBaseFournisseur.ps1         ← Script optionnel : génère données de migration
-│                                            depuis fichier Excel client (Phase 2)
+├── GenerateurBaseFournisseur.ps1           ← Script optionnel : génère données de migration
+│                                               depuis fichier Excel client (Phase 2)
 ├── config/
-│   ├── client_config_template.json       ← Template à copier pour chaque client
-│   └── exemple_client_A.json             ← Exemple client agroalimentaire
+│   ├── client_config_template.json         ← Template à copier pour chaque client
+│   └── exemple_client_A.json               ← Exemple client agroalimentaire
 │
 ├── docs/
-│   ├── guide_utilisateur.md              ← Guide équipes Qualité + Achats
-│   ├── guide_migration.md                ← Guide migration initiale (Phase 2)
-│   └── powerbi_specs.md                  ← Spécifications connecteur Power BI (Phase 3)
+│   ├── guide_utilisateur.md                ← Guide équipes Qualité + Achats
+│   ├── guide_migration.md                  ← Guide migration initiale (Phase 2)
+│   └── powerbi_specs.md                    ← Spécifications connecteur Power BI (Phase 3)
 │
 └── templates/
     └── email/
-        ├── alerte_expiration.html         ← Template email alerte
-        └── relance_fournisseur.html       ← Template email relance
+        ├── alerte_expiration.html           ← Template email alerte
+        └── relance_fournisseur.html         ← Template email relance
 ```
+
+---
+
+## 🌐 Démo Client Interactive (GitHub Pages)
+
+Le fichier `index.html` sert de guide visuel et d'interface de démonstration.
+- **Pour les clients** : Publié sur GitHub Pages pour une consultation instantanée sans configuration.
+- **Pour les collègues** : Guide complet des flux SharePoint et des structures de données.
+
+**Accès** : `https://visitune.github.io/Gestion-Fournisseurs-Plateforme-SharePoint/`
+
+> Le fichier `easy-way.html` est également publié (alternative simplifiée par email).
+> Le fichier `app/app.html` nécessite un navigateur compatible FileSystem API (Chrome/Edge) et un dossier local à connecter.
 
 ---
 
@@ -69,8 +201,7 @@ Install-Module PnP.PowerShell -Scope CurrentUser
 
 ### Étape 1 — Enregistrer l'app Entra ID (une fois par tenant)
 
-> ⚠️ L'ancienne app multi-tenant PnP a été supprimée le 9 sept. 2024.
-> Chaque tenant doit avoir sa propre app.
+> ⚠️ L'ancienne app multi-tenant PnP a été supprimée le 9 sept. 2024. Chaque tenant doit avoir sa propre app.
 
 ```powershell
 Register-PnPEntraIDAppForInteractiveLogin `
@@ -114,8 +245,7 @@ Durée : 3 à 5 minutes.
 | Liste analyse fraude | `Analyse_Fraude` |
 | Bibliothèque fichiers | `Documents_Fichiers` |
 
-> Si `niveaux_actifs` dans la config ne contient que `"Fournisseur"`, les listes
-> `Matieres_Premieres` et `Liens_Fourn_Mat` sont ignorées (client sans suivi par matière).
+> Si `niveaux_actifs` dans la config ne contient que `"Fournisseur"`, les listes `Matieres_Premieres` et `Liens_Fourn_Mat` sont ignorées (client sans suivi par matière).
 
 #### Paramétrage des niveaux de suivi (`config/*.json`)
 
@@ -129,11 +259,13 @@ La clé `niveaux_actifs` déclare quels niveaux de suivi documentaire sont actif
 ### Étape 3 — Importer les 7 flux Power Automate
 
 **Comment importer les flux :**
+
 1. Dans Power Automate → **Mes flux** → **Nouveau flux** → **Flux planifié** (pour Flux 1) ou **Flux automatisé** (pour Flux 2–7)
 2. Dans l'éditeur → bouton `...` → **Modifier en JSON** → coller le contenu du fichier JSON
 3. Enregistrer et configurer les connexions (SharePoint, Office 365 Outlook, Microsoft Forms)
 
 Après import, remplacer dans chaque flux les paramètres en majuscules :
+
 | Paramètre | Flux concernés | Valeur |
 |---|---|---|
 | `VOTRE_SITE_URL` | Tous | URL du site SP (ex: `https://acme.sharepoint.com/sites/GestionFournisseurs`) |
@@ -146,8 +278,9 @@ Après import, remplacer dans chaque flux les paramètres en majuscules :
 | `EMAIL_ACHATS` | Flux 2, 3 | Email équipe Achats |
 | `VOTRE_FORM_ID` | Flux 5 | ID du formulaire Microsoft Forms (portail dépôt fournisseur) |
 
-> **Alternative ALM** : pour un déploiement multi-environnements (dev → prod) avec versioning Git,
-> utiliser PAC CLI : `pac solution import --path ./solution.zip`
+> **Alternative ALM** : pour un déploiement multi-environnements (dev → prod) avec versioning Git, utiliser PAC CLI : `pac solution import --path ./solution.zip`
+
+> **Alternative simplifiée** : voir `easy-way.html` — remplace les 7 flows complexes par 3 automatisations simples basées sur une boîte email dédiée.
 
 ---
 
@@ -190,6 +323,7 @@ Le projet évolue actuellement selon les axes prioritaires suivants (Phase "Expe
 
 | Lot | Feature | Priorité | Statut | Techno |
 |---|---|---|---|---|
+| **Lot 1** | App de scan terrain (app.html) | **Haute** | ✅ Livré | FileSystem API |
 | **Lot 2** | Gestion Justifications Documentaires | **Haute** | ⏳ Prévu | IndexedDB |
 | **Lot 3** | Plan de Maîtrise (Étapes HACCP 8-12) | **Moyenne** | ⏳ Prévu | Vanilla JS |
 | **Lot 4** | Reporting Experts & Export PDF | **Optimisation** | ⏳ Prévu | jsPDF |
@@ -197,9 +331,12 @@ Le projet évolue actuellement selon les axes prioritaires suivants (Phase "Expe
 **Notes pour les collègues :**
 - Les fichiers de configuration dans `/config` servent de templates. Ne poussez pas de données clients réelles sur le repo GitHub (utilisez des variables de déploiement si besoin).
 - Pour modifier les icônes, utilisez la bibliothèque **Lucide** déjà intégrée via CDN dans le HTML.
+- L'app `app.html` utilise la **FileSystem Access API** (Chrome 86+, Edge 86+) — pas de dépendance serveur.
+- Les règles d'extraction de dates sont dans `app/data/date-priority-rules.json` — modifiable sans toucher au code.
 
 ---
 
 ## Authors & License
+
 - **Auteur :** Mounir (Expert Qualité & Digital)
 - **Repo Privé :** usage réservé aux collaborateurs internes.
